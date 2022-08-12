@@ -734,6 +734,7 @@
 #define COMSIG_XENOABILITY_NIGHTFALL "xenoability_nightfall"
 #define COMSIG_XENOABILITY_GRAVITY_CRUSH "xenoability_gravity_crush"
 #define COMSIG_XENOABILITY_HIVE_SUMMON "xenoability_hive_summon"
+#define COMSIG_XENOABILITY_TAIL_IMPALE "xenoability_tail_impale"
 
 #define COMSIG_XENOABILITY_SCATTER_SPIT "xenoability_scatter_spit"
 

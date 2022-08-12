@@ -38,13 +38,9 @@
 	actions = list(
 		/datum/action/xeno_action/xeno_resting,
 		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/cocoon,
-		/datum/action/xeno_action/activable/plant_weeds,
-		/datum/action/xeno_action/activable/corrosive_acid/strong,
+		/datum/action/xeno_action/activable/tail_impale,
 		/datum/action/xeno_action/activable/nightfall,
 		/datum/action/xeno_action/activable/gravity_crush,
-		/datum/action/xeno_action/psychic_summon,
 		/datum/action/xeno_action/pheromones,
 		/datum/action/xeno_action/pheromones/emit_recovery,
 		/datum/action/xeno_action/pheromones/emit_warding,
@@ -136,3 +132,49 @@
 
 	// *** Pheromones *** //
 	aura_strength = 6
+
+/datum/xeno_caste/king/primordial
+	// caste_desc = "Harbinger of doom."
+	// ancient_message = "We are the end."
+	upgrade = XENO_UPGRADE_THREE
+
+	// *** Melee Attacks *** //
+	melee_damage = 30
+
+	// *** Speed *** //
+	speed = -0.3
+
+	// *** Plasma *** //
+	plasma_max = 1200
+	plasma_gain = 70
+
+	// *** Health *** //
+	max_health = 700
+
+	// *** Evolution *** //
+	upgrade_threshold = TIER_THREE_ANCIENT_THRESHOLD
+
+	// *** Defense *** //
+	soft_armor = list("melee" = 65, "bullet" = 65, "laser" = 65, "energy" = 65, "bomb" = 100, "bio" = 60, "rad" = 60, "fire" = 100, "acid" = 60)
+
+	// *** Ranged Attack *** //
+	spit_delay = 1.1 SECONDS
+
+	// *** Pheromones *** //
+	aura_strength = 6
+
+	actions = list(
+		/datum/action/xeno_action/xeno_resting,
+		/datum/action/xeno_action/watch_xeno,
+		/datum/action/xeno_action/activable/tail_impale,
+		/datum/action/xeno_action/activable/nightfall,
+		/datum/action/xeno_action/activable/gravity_crush,
+		/datum/action/xeno_action/psychic_summon,
+		/datum/action/xeno_action/pheromones,
+		/datum/action/xeno_action/pheromones/emit_recovery,
+		/datum/action/xeno_action/pheromones/emit_warding,
+		/datum/action/xeno_action/pheromones/emit_frenzy,
+		/datum/action/xeno_action/rally_hive,
+		/datum/action/xeno_action/rally_minion,
+		/datum/action/xeno_action/set_agressivity,
+	)

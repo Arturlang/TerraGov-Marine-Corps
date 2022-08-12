@@ -136,7 +136,7 @@
 	keybind_flags = XACT_KEYBIND_USE_ABILITY
 	keybind_signal = COMSIG_XENOABILITY_HIVE_SUMMON
 
-/datum/action/xeno_action/activable/psychic_summon/on_cooldown_finish()
+/datum/action/xeno_action/psychic_summon/on_cooldown_finish()
 	to_chat(owner, span_warning("The hives power swells. We may summon our sisters again."))
 	return ..()
 
@@ -170,3 +170,48 @@
 
 	add_cooldown()
 	succeed_activate()
+
+/datum/action/xeno_action/activable/tail_impale
+	name = "Tail Impale"
+	action_icon_state = "stomp"
+	mechanics_text = "Impales the target with your tail, staggering them for a short time."
+	ability_name = "Tail impale"
+	plasma_cost = 100
+	cooldown_timer = 7 SECONDS
+	keybind_flags = XACT_KEYBIND_USE_ABILITY
+	keybind_signal = COMSIG_XENOABILITY_TAIL_IMPALE
+	var/impale_distance = 2
+	var/stagger_duration = 1 SECONDS
+	var/list/sound_variations = list(
+		'sound/effects/alien_tail_swipe1.ogg',
+		'sound/effects/alien_tail_swipe2.ogg',
+		'sound/effects/alien_tail_swipe3.ogg',
+	)
+
+/datum/action/xeno_action/activable/tail_impale/use_ability(atom/target)
+	var/mob/living/carbon/xenomorph/xeno = owner
+	SSblackbox.record_feedback("tally", "round_statistics", 1, "king_tail_impales")
+	xeno.face_atom(target)
+	var/sound = pick(sound_variations)
+	playsound(xeno, sound, 50, 100)
+	xeno.visible_message(span_alien("[xeno] stabs it's tail ahead of itself!"))
+	var/target_zone = check_zone(xeno.zone_selected)
+
+	var/list/turfs = get_line(xeno, target)
+	for (var/turf/turf in turfs)
+		if (get_dist(xeno, turf) > impale_distance)
+			break
+		if (turf.density)
+			break
+		for (var/mob/living/victim in turf)
+			if (victim.stat != DEAD && !xeno.issamexenohive(victim))
+				// Then we need to check if they're actually reachable
+				victim.apply_damage(xeno.xeno_caste.melee_damage, BRUTE, target_zone)
+				victim.adjust_stagger(stagger_duration)
+				victim.visible_message(span_warning("[xeno] stabs it's tail through [victim]'s [target_zone]!"))
+				playsound(victim, 'sound/weapons/alien_tail_attack.ogg', 50)
+				break
+			continue
+	add_cooldown()
+	succeed_activate()
+
