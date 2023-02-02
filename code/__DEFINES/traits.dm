@@ -107,6 +107,7 @@
 #define PETRIFY_ABILITY_TRAIT "petrify_ability_trait"
 #define SHATTERING_ROAR_ABILITY_TRAIT "shattering_roar_ability_trait"
 #define ZERO_FORM_BEAM_ABILITY_TRAIT "zero_form_beam_ability_trait"
+#define TRAIT_SMALL_XENO_SPRITE "small_xeno_sprite"
 
 /// A trait given by any status effect
 #define STATUS_EFFECT_TRAIT "status-effect"

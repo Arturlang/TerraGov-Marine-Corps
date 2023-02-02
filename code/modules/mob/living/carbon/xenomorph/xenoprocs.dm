@@ -12,6 +12,25 @@
 
 	check_tunnel_list(src)
 
+/mob/living/carbon/xenomorph/verb/small_sprite_toggle()
+	set name = "Toggle Small Sprite"
+	set desc = "Toggle between seeing your own sprite as big or small."
+	set category = "Alien"
+
+	if(!client)
+		return
+	var/trait_from = "small_sprite_toggle"
+	if(HAS_TRAIT_FROM(src, TRAIT_SMALL_XENO_SPRITE, trait_from))
+		REMOVE_TRAIT(src, TRAIT_SMALL_XENO_SPRITE, trait_from)
+		remove_alt_appearance("smallsprite")
+		to_chat(src, span_notice("You will now see your own sprite as big."))
+	else
+		var/image/I = image(icon = icon, icon_state = "Runner rouny Running", loc = src)
+		// scale the image so the 2x2 sprite is 1x1
+		I.transform = matrix(0.5, 0, 0, 0, 0.5, 0)
+		add_alt_appearance(/datum/atom_hud/alternate_appearance/basic, "smallsprite", I, AA_TARGET_SEE_APPEARANCE | AA_MATCH_TARGET_OVERLAYS)
+		ADD_TRAIT(src, TRAIT_SMALL_XENO_SPRITE, trait_from)
+		to_chat(src, span_notice("You will now see your own sprite as small."))
 
 /proc/check_tunnel_list(mob/user) //Creates a handy list of all xeno tunnels
 	var/dat = "<br>"
