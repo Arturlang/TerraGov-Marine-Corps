@@ -790,8 +790,7 @@
 
 /datum/status_effect/xeno/dragon_flight/process()
 	. = ..()
-	// Ran out of fuel? No flying for you
-	if(owner_xeno.plasma_stored <= plasma_to_sustain)
+	if(owner_xeno.plasma_stored <= plasma_to_sustain || !owner_xeno.check_state(TRUE))
 		qdel(src)
 		return
 	owner_xeno.plasma_stored -= plasma_to_sustain
@@ -801,9 +800,7 @@
 		create_shadow()
 	owner.layer = MOB_LAYER + 1
 	//Queues up flaps, because sleeps are bad
-	for(var/step in 1 to takeoff_flaps)
-		// Give give both the current step and the amount left as args, and delay it so it happens nicely after eachother
-		addtimer(CALLBACK(src, .proc/flap, step), step * flap_delay)
+	flap(1)
 
 
 /datum/status_effect/xeno/dragon_flight/proc/flap(current_step)
@@ -812,9 +809,11 @@
 	playsound(owner, wing_sound, 100, TRUE, 14)
 	addtimer(CALLBACK(src, .proc/dissapear, flap_delay * 4), flap_delay * 2)
 	animate(owner, flap_delay, pixel_y = pixel_change, flags = ANIMATION_RELATIVE, easing = BACK_EASING)
-
+	
 	if(current_step >= takeoff_flaps)
 		finish_take_off()
+	else
+		addtimer(CALLBACK(src, .proc/flap, current_step + 1), flap_delay)
 
 /datum/status_effect/xeno/dragon_flight/proc/dissapear(time)
 	animate(owner, time, alpha = 0)

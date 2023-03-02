@@ -171,9 +171,10 @@
 			stat("<b>Orphan hivemind collapse timer:</b>", siloless_countdown)
 
 //A simple handler for checking your state. Used in pretty much all the procs.
-/mob/living/carbon/xenomorph/proc/check_state()
+/mob/living/carbon/xenomorph/proc/check_state(silent = FALSE)
 	if(incapacitated() || lying_angle)
-		to_chat(src, span_warning("We cannot do this in our current state."))
+		if(!silent)
+			to_chat(src, span_warning("We cannot do this in our current state."))
 		return 0
 	return 1
 

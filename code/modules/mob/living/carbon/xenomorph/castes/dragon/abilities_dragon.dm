@@ -123,7 +123,8 @@
 		return FALSE
 	var/invalid_area = FALSE
 	var/area/owner_area = get_area(owner)
-	if(owner_area.ceiling != CEILING_NONE)
+	// Figure out some bullshit how the dragon can fly on the marine ship, or make it 
+	if(owner_area.ceiling >= CEILING_UNDERGROUND)
 		if(!silent)
 			owner.balloon_alert(owner, "the ceiling here stops you from flying!")
 		return FALSE
@@ -149,10 +150,11 @@
 	var/old_flight_landing_delay = flight ? flight.landing_delay : 0
 	if(!ascend_to_flight_or_hover())
 		return
-	
-	if(!do_after(owner_xeno, 10 SECONDS))
-		if(old_flight_landing_delay)
-			owner_xeno.AdjustImmobilized(-old_flight_landing_delay)
+	var/takeoff_time = flight.flap_delay * flight.takeoff_flaps
+	owner_xeno.Immobilize(takeoff_time, TRUE)
+	if(!do_after(owner_xeno, takeoff_time))
+		if(takeoff_time)
+			owner_xeno.AdjustImmobilized(-takeoff_time)
 		alternate_action_activate(TRUE)
 		return fail_activate()
 
