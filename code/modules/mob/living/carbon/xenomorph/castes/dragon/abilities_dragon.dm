@@ -142,7 +142,7 @@
 	if(flight?.hover_transition)
 		return fail_activate()
 	// If we're already at max height, tell them how to descend
-	if(istype(flight, STATUS_EFFECT_FLIGHT))
+	if(flight.type == STATUS_EFFECT_FLIGHT)
 		// Tempting to make this land you immediately,
 		//  but having a way to inform the player how to do it themselves is better
 		owner_xeno.balloon_alert(owner_xeno, "right click the action button to land!")
@@ -179,7 +179,9 @@
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	var/status_effect_to_add
 	if(!flight)
-		owner_xeno.balloon_alert_to_viewers("unfolds it's wings and begins to ascend!")
+		status_effect_to_add = STATUS_EFFECT_HOVER
+		var/area/owner_area = get_area(owner)
+		owner_xeno.balloon_alert_to_viewers(owner_area.ceiling ? "burrows through the thin roof!" : "takes flight!")
 		status_effect_to_add = STATUS_EFFECT_HOVER
 
 	else if(is_hovering)

@@ -790,10 +790,10 @@
 
 /datum/status_effect/xeno/dragon_flight/process()
 	. = ..()
-	if(owner_xeno.plasma_stored <= plasma_to_sustain || !owner_xeno.check_state(TRUE))
+	if(owner_xeno?.plasma_stored <= plasma_to_sustain || !owner_xeno.check_state(TRUE))
 		qdel(src)
 		return
-	owner_xeno.plasma_stored -= plasma_to_sustain
+	owner_xeno.use_plasma(plasma_to_sustain)
 
 /datum/status_effect/xeno/dragon_flight/proc/take_off()
 	if(!shadow)
