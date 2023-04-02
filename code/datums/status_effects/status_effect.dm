@@ -274,6 +274,7 @@
 
 /datum/status_effect/xeno/on_creation(mob/living/new_owner, ...)
 	if(!isxeno(new_owner))
+		qdel(src)
 		return
 	. = ..()
 	owner_xeno = owner

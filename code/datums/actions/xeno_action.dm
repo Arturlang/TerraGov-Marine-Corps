@@ -57,8 +57,8 @@
 		if(!silent)
 			X.balloon_alert(X, "Wait [cooldown_remaining()] sec")
 		return FALSE
-
-	if(!(flags_to_check & XACT_USE_INCAP) && X.incapacitated())
+	var/ignore_hand_blocked_incapacitated = flags_to_check & XACT_IGNORE_HAND_BLOCKED
+	if(!(flags_to_check & XACT_USE_INCAP) && X.incapacitated(ignore_hand_blocked_incapacitated ? TRUE : FALSE))
 		if(!silent)
 			X.balloon_alert(X, "Cannot while incapacitated")
 		return FALSE

@@ -572,12 +572,17 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 // Variant of flamer fire without fire amount stages, but has smoothing
 /obj/flamer_fire/autosmoothing
 	mouse_opacity = MOUSE_OPACITY_OPAQUE
-	icon_state = "gray"
+	icon_state = "gray-0"
 	color = COLOR_ORANGE
 	smoothing_groups = list(SMOOTH_GROUP_FIRE)
-	smoothing_behavior = CARDINAL_SMOOTHING
+	smoothing_behavior = SMOOTH_BITMASK
+	canSmoothWith = list(SMOOTH_GROUP_FIRE)
 	light_color = null
 	// firelevel = 500
+
+/obj/flamer_fire/autosmoothing/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
+	. = ..()
+	QUEUE_SMOOTH(src)
 
 /obj/flamer_fire/autosmoothing/update_icon()
 	if(!light_color)

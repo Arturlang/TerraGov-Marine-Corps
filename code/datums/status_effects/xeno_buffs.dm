@@ -767,9 +767,9 @@
 	alert_type = null
 	var/landing_delay = 10 SECONDS
 	var/flap_delay = 2 SECONDS
-	var/takeoff_flaps = 10
+	var/takeoff_flaps = 5
 	var/flight_pixel_height = 200
-	var/plasma_to_sustain = 10
+	var/plasma_to_sustain = 6
 	var/hover_transition = FALSE
 	var/obj/effect/shadow
 	var/wing_sound = 'sound/effects/woosh_swoosh.ogg'
@@ -790,7 +790,7 @@
 
 /datum/status_effect/xeno/dragon_flight/process()
 	. = ..()
-	if(owner_xeno?.plasma_stored <= plasma_to_sustain || !owner_xeno.check_state(TRUE))
+	if(owner_xeno?.plasma_stored <= plasma_to_sustain && owner_xeno.check_state(TRUE))
 		qdel(src)
 		return
 	owner_xeno.use_plasma(plasma_to_sustain)
@@ -799,38 +799,33 @@
 	if(!shadow)
 		create_shadow()
 	owner.layer = MOB_LAYER + 1
-	//Queues up flaps, because sleeps are bad
-	flap(1)
+	flap()
 
-
-/datum/status_effect/xeno/dragon_flight/proc/flap(current_step)
-	// We want to reach out of the view screen within the steps left
-	var/pixel_change = flight_pixel_height * (current_step / takeoff_flaps)
+/datum/status_effect/xeno/dragon_flight/proc/flap(current_step = 0)
+	var/pixel_change = flight_pixel_height / takeoff_flaps
 	playsound(owner, wing_sound, 100, TRUE, 14)
-	addtimer(CALLBACK(src, .proc/dissapear, flap_delay * 4), flap_delay * 2)
+	addtimer(CALLBACK(src, .proc/disappear, flap_delay * 4), flap_delay * 2)
 	animate(owner, flap_delay, pixel_y = pixel_change, flags = ANIMATION_RELATIVE, easing = BACK_EASING)
 	
 	if(current_step >= takeoff_flaps)
-		finish_take_off()
+		toggle_flight_properties()
 	else
 		addtimer(CALLBACK(src, .proc/flap, current_step + 1), flap_delay)
 
-/datum/status_effect/xeno/dragon_flight/proc/dissapear(time)
+/datum/status_effect/xeno/dragon_flight/proc/disappear(time)
 	animate(owner, time, alpha = 0)
 
-/datum/status_effect/xeno/dragon_flight/proc/reset_pixel_y()
-	owner.pixel_y = initial(owner.pixel_y)
-
-/datum/status_effect/xeno/dragon_flight/proc/finish_take_off()
-	owner_xeno.toggle_intangibility("dragon_flight")
-
 /datum/status_effect/xeno/dragon_flight/proc/land()
+	toggle_flight_properties()
 	owner.Immobilize(landing_delay)
 	animate(owner, landing_delay, pixel_y = initial(owner.pixel_y), easing = SINE_EASING)
 	addtimer(CALLBACK(GLOBAL_PROC, .proc/playsound, owner, wing_sound, 70, TRUE), landing_delay * 0.5)
 	animate(owner, landing_delay, alpha = initial(owner.alpha))
 	if(shadow) 
 		QDEL_NULL_IN(src, shadow, landing_delay)
+
+/datum/status_effect/xeno/dragon_flight/proc/toggle_flight_properties()
+	owner_xeno.toggle_intangibility("dragon_flight")
 
 /datum/status_effect/xeno/dragon_flight/proc/create_shadow()
 	shadow = new /obj/effect/following_shadow(get_turf(owner), owner)
@@ -849,11 +844,11 @@
 
 /datum/status_effect/xeno/dragon_flight/hover
 	id = "hover"
-	plasma_to_sustain = 5
+	plasma_to_sustain = 3
 	takeoff_flaps = 2
 	landing_delay = 1 SECONDS
 	flight_pixel_height = 50
-	var/datum/component/slidey_movement/slide_comp
+	// var/datum/component/slidey_movement/slide_comp
 
 /datum/status_effect/xeno/dragon_flight/hover/on_apply()
 	. = ..()
@@ -871,16 +866,18 @@
 		return
 	. = ..()
 
-/datum/status_effect/xeno/dragon_flight/hover/finish_take_off()
+/datum/status_effect/xeno/dragon_flight/hover/toggle_flight_properties()
 	DO_FLOATING_ANIM(owner, 2 SECONDS, 4)
 	return
 
-/datum/status_effect/xeno/dragon_flight/hover/dissapear(time)
+/datum/status_effect/xeno/dragon_flight/hover/disappear(time)
 	return
 
 /datum/status_effect/xeno/dragon_flight/hover/land()
 	STOP_FLOATING_ANIM(owner)
 	. = ..()
+
+
 // ***************************************
 // *********** Drain Surge
 // ***************************************

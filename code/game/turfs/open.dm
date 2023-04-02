@@ -478,7 +478,7 @@
 	name = "dirt"
 	icon_state = "basalt_to_dirt_corner"
 
-/turf/open/lavaland/basalt/dirt/autosmoothing
+/turf/open/lavaland/basalt/dirt/
 	icon = 'icons/turf/floors/basalt-dirt.dmi'
 	icon_state = "basalt-dirt-icon"
 	base_icon_state = "basalt-dirt"

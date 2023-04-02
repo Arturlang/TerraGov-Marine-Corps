@@ -2,8 +2,8 @@
 /datum/action/xeno_action/activable/tail_stab
 	name = "Tail Stab"
 	// action_icon_state = "todo"
-	desc = "Stab a human with your tail, immobilizing it, and setting it on fire after a moment."
-	use_state_flags = XACT_USE_STAGGERED
+	desc = "Stab a human with your tail, immobilizing it, and setting it on fire after a moment. Also works while hovering or flying"
+	use_state_flags = XACT_USE_STAGGERED|XACT_IGNORE_HAND_BLOCKED
 	plasma_cost = 100
 	cooldown_timer = 7 SECONDS
 	var/tail_stab_range = 2
@@ -25,33 +25,60 @@
 		return FALSE
 	return TRUE
 
+// TODO, make it only lock the target on hover or on the ground, and make flying stab not target based
 /datum/action/xeno_action/activable/tail_stab/use_ability(mob/living/carbon/human/target)
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
-	target.apply_damage(owner_xeno.xeno_caste.melee_damage * owner_xeno.xeno_melee_damage_modifier)
-	playsound(owner_xeno, 'sound/weapons/alien_tail_attack.ogg', 50, TRUE)
-	log_combat(owner_xeno, target, "fire tailkstabbed")
-	owner_xeno.balloon_alert_to_viewers("has tail-stabbed [target]")
-	owner_xeno.face_atom(target)
-	target.Immobilize(tail_stab_delay)
-	target.apply_status_effect(STATUS_EFFECT_DRAGONFIRE, 10)
-	owner_xeno.do_attack_animation(target, ATTACK_EFFECT_GRAB)
+	initial_attack(target, owner_xeno)
 	var/tail_stab_start_time = world.time
 
 	if(!do_after(owner_xeno, tail_stab_delay))
 		owner_xeno.balloon_alert(owner_xeno, "You give up on lighting [target] on fire!")
 		// Remove the remaining stun that's left
-		target.AdjustImmobilized(world.time - tail_stab_start_time - tail_stab_delay)
+		target.AdjustImmobilized(world.time - tail_stab_start_time)
 		add_cooldown(cooldown_timer * 0.5)
-		return succeed_activate() 
+		return succeed_activate()
+
+	delayed_effect(target, owner_xeno)
+	return succeed_activate()
+
+/datum/action/xeno_action/activable/tail_stab/proc/initial_attack(mob/living/carbon/human/target, mob/living/carbon/xenomorph/owner_xeno)
+	var/datum/action/xeno_action/flight/flight_action = owner_xeno.actions_by_path[/datum/action/xeno_action/flight]
+	var/flight_landing_delay = flight_action.flight.landing_delay
+	if(flight_action.flight)
+		owner_xeno.remove_status_effect(flight_action.flight)
+		addtimer(CALLBACK(src, .proc/landing_effects, target, owner_xeno), flight_landing_delay)
+		target.Immobilize(flight_landing_delay)
+	else
+		tail_stab(target, owner_xeno)
+		target.Immobilize(tail_stab_delay)
+		owner_xeno.balloon_alert_to_viewers("has tail-stabbed [target]")
+
+/datum/action/xeno_action/activable/tail_stab/proc/tail_stab(mob/living/carbon/human/target, mob/living/carbon/xenomorph/owner_xeno, damage_modifier = 1)
+	target.apply_damage((owner_xeno.xeno_caste.melee_damage * owner_xeno.xeno_melee_damage_modifier) * damage_modifier, BRUTE, "chest")
+	playsound(owner_xeno, 'sound/weapons/alien_tail_attack.ogg', 50, TRUE)
+	log_combat(owner_xeno, target, "fire tail-stabbed")
+	owner_xeno.balloon_alert_to_viewers("has tail-stabbed [target]")
+	owner_xeno.face_atom(target)
+	target.apply_status_effect(STATUS_EFFECT_DRAGONFIRE, 10)
+	owner_xeno.do_attack_animation(target, ATTACK_EFFECT_GRAB)
+
+/datum/action/xeno_action/activable/tail_stab/proc/landing_effects(mob/living/carbon/human/target, mob/living/carbon/xenomorph/owner_xeno)
+	owner_xeno.balloon_alert_to_viewers("[owner_xeno] swoops down and impales [target] with it's tail!")
+	tail_stab(target, owner_xeno, 2)
+	playsound(get_turf(owner_xeno), 'sound/effects/droppod_impact.ogg', 100)
+	for(var/turf/affected_tiles AS in RANGE_TURFS(2, owner_xeno.loc))
+		affected_tiles.Shake(4, 4, 1 SECONDS)
+
+/datum/action/xeno_action/activable/tail_stab/proc/delayed_effect(mob/living/carbon/human/target, mob/living/carbon/xenomorph/owner_xeno)
 	owner_xeno.do_attack_animation(target, ATTACK_EFFECT_REDSTAB)
 	owner_xeno.balloon_alert_to_viewers("has set [target] on fire with their tail!")
 	target.apply_status_effect(STATUS_EFFECT_DRAGONFIRE, 40)
 	add_cooldown()
-	return succeed_activate()
 
 /datum/action/xeno_action/activable/xeno_spit/fireball
 	name = "Spit a fireball"
 	desc = "Belch a fiery fireball at your foes."
+	use_state_flags = XACT_IGNORE_HAND_BLOCKED
 	var/flying_spit_delay = 1.5 SECONDS
 	var/flying_spit_type = /datum/ammo/flamethrower/dragon_fire/flying
 
@@ -109,6 +136,8 @@
 	name = "Skycall"
 	desc = "Take flight and rain hell upon your enemies! Right click the action button to descend, and left click to ascend."
 	cooldown_timer = 3 MINUTES
+	// Alternative for this, apply XACT_IGNORE_HAND_BLOCKED on flight activation
+	use_state_flags = XACT_IGNORE_HAND_BLOCKED
 	var/list/blacklisted_areas = list(
 		/area/shuttle/dropship,
 		/area/shuttle
@@ -139,15 +168,15 @@
 
 /datum/action/xeno_action/flight/action_activate()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
-	if(flight?.hover_transition)
-		return fail_activate()
-	// If we're already at max height, tell them how to descend
-	if(flight.type == STATUS_EFFECT_FLIGHT)
-		// Tempting to make this land you immediately,
-		//  but having a way to inform the player how to do it themselves is better
-		owner_xeno.balloon_alert(owner_xeno, "right click the action button to land!")
-		return fail_activate()
-	var/old_flight_landing_delay = flight ? flight.landing_delay : 0
+	if(flight)
+		if(flight.hover_transition)
+			return fail_activate()
+		// If we're already at max height, tell them how to descend
+		if(flight.type == STATUS_EFFECT_FLIGHT)
+			// Tempting to make this land you immediately,
+			//  but having a way to inform the player how to do it themselves is better
+			owner_xeno.balloon_alert(owner_xeno, "right click the action button to land!")
+			return fail_activate()
 	if(!ascend_to_flight_or_hover())
 		return
 	var/takeoff_time = flight.flap_delay * flight.takeoff_flaps
@@ -155,6 +184,7 @@
 	if(!do_after(owner_xeno, takeoff_time))
 		if(takeoff_time)
 			owner_xeno.AdjustImmobilized(-takeoff_time)
+		add_cooldown(1 MINUTES)
 		alternate_action_activate(TRUE)
 		return fail_activate()
 
@@ -175,8 +205,9 @@
 			add_cooldown()
 			land()
 
-/datum/action/xeno_action/flight/proc/ascend_to_flight_or_hover(is_hovering = FALSE)
+/datum/action/xeno_action/flight/proc/ascend_to_flight_or_hover()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
+	var/is_hovering = flight?.type == STATUS_EFFECT_HOVER		
 	var/status_effect_to_add
 	if(!flight)
 		status_effect_to_add = STATUS_EFFECT_HOVER
@@ -185,7 +216,8 @@
 		status_effect_to_add = STATUS_EFFECT_HOVER
 
 	else if(is_hovering)
-		owner_xeno.visible_message("<span class='warning'>[owner_xeno] begins to ascend to the skies!</span>")
+		var/turf/turf = get_turf(owner)
+		turf.balloon_alert_to_viewers("[owner_xeno] begins to ascend to the skies!")
 		status_effect_to_add = STATUS_EFFECT_FLIGHT
 
 	if(!status_effect_to_add)
