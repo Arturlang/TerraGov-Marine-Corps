@@ -514,7 +514,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 		return
 
 	firelevel -= 20 //Water level extinguish
-	update_icon()
+	updateicon()
 	if(firelevel < 1) //Extinguish if our firelevel is less than 1
 		qdel(src)
 
@@ -572,31 +572,31 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 // Variant of flamer fire without fire amount stages, but has smoothing
 /obj/flamer_fire/autosmoothing
 	mouse_opacity = MOUSE_OPACITY_OPAQUE
-	icon_state = "gray-0"
+	base_icon_state = "fire"
+	icon_state = "fire-0"
 	color = COLOR_ORANGE
 	smoothing_groups = list(SMOOTH_GROUP_FIRE)
-	smoothing_behavior = SMOOTH_BITMASK
+	smoothing_flags = SMOOTH_BITMASK
 	canSmoothWith = list(SMOOTH_GROUP_FIRE)
 	light_color = null
-	// firelevel = 500
 
-/obj/flamer_fire/autosmoothing/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
-	. = ..()
-	QUEUE_SMOOTH(src)
+// /obj/flamer_fire/autosmoothing/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
+// 	. = ..()
+// 	QUEUE_SMOOTH(src)
 
-/obj/flamer_fire/autosmoothing/update_icon()
+/obj/flamer_fire/autosmoothing/updateicon()
 	if(!light_color)
 		light_color = flame_color
 	set_light_range_power_color(light_intensity, light_power, light_color)
 	// How much percentage of the fire lifetime is left
 	var/fire_percentage = firelevel / initial(firelevel)
 	// Gets more seethrough as it's about to go out
-	alpha = clamp(255 * fire_percentage + 40, 0, 255)
+	animate(src, alpha = clamp(255 * fire_percentage + 40, 0, 255), time = 0.5 SECONDS)
 
 /obj/flamer_fire/autosmoothing/resin
 	burnflags = BURN_HUMANS|BURN_ENVIRONMENT
 	color = COLOR_PURPLE
-	firelevel = 24
+	firelevel = 600
 
 /obj/item/weapon/gun/flamer/hydro_cannon
 	name = "underslung hydrocannon"
