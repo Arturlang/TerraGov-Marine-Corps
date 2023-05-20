@@ -769,21 +769,33 @@
 	var/flap_delay = 2 SECONDS
 	var/takeoff_flaps = 5
 	var/flight_pixel_height = 200
-	var/plasma_to_sustain = 6
+	var/plasma_to_sustain = 3
 	var/hover_transition = FALSE
 	var/obj/effect/shadow
 	var/wing_sound = 'sound/effects/woosh_swoosh.ogg'
+	var/re_add_healing = FALSE
 
 /datum/status_effect/xeno/dragon_flight/on_apply()
+	SEND_SIGNAL(owner, COMSIG_XENO_FLIGHT_START)
+	// if(CHECK_BITFIELD(owner_xeno.xeno_caste.caste_flags, CASTE_INNATE_HEALING))
+	// 	ENABLE_BITFIELD(owner_xeno.xeno_caste.caste_flags, CASTE_INNATE_HEALING)
+	// 	re_add_healing = TRUE
+
 	. = ..()
 	ADD_TRAIT(owner, TRAIT_HANDS_BLOCKED, "dragon_flight")
 	take_off()
 
 /datum/status_effect/xeno/dragon_flight/on_remove()
+	SEND_SIGNAL(owner, COMSIG_XENO_FLIGHT_END)
+	// if(re_add_healing)
+	// 	ENABLE_BITFIELD(owner_xeno.xeno_caste.caste_flags, CASTE_INNATE_HEALING)
+
 	if(HAS_TRAIT_FROM(owner, TRAIT_HANDS_BLOCKED, "dragon_flight"))
-		owner_xeno.toggle_intangibility("dragon_flight")
+		toggle_flight_properties()
+
 	if(!hover_transition)
 		land()
+
 	REMOVE_TRAIT(owner, TRAIT_HANDS_BLOCKED, "dragon_flight")
 	owner.layer = initial(owner.layer)
 	. = ..()
@@ -793,15 +805,22 @@
 	if(owner_xeno?.plasma_stored <= plasma_to_sustain && owner_xeno.check_state(TRUE))
 		qdel(src)
 		return
+
 	owner_xeno.use_plasma(plasma_to_sustain)
 
 /datum/status_effect/xeno/dragon_flight/proc/take_off()
 	if(!shadow)
 		create_shadow()
+
 	owner.layer = MOB_LAYER + 1
 	flap()
 
 /datum/status_effect/xeno/dragon_flight/proc/flap(current_step = 0)
+	// check if we're on fire, if so, we can't flap
+	if(owner.on_fire)
+		land()
+		return
+
 	var/pixel_change = flight_pixel_height / takeoff_flaps
 	playsound(owner, wing_sound, 100, TRUE, 14)
 	addtimer(CALLBACK(src, .proc/disappear, flap_delay * 4), flap_delay * 2)
@@ -825,6 +844,12 @@
 		QDEL_NULL_IN(src, shadow, landing_delay)
 
 /datum/status_effect/xeno/dragon_flight/proc/toggle_flight_properties()
+	if(HAS_TRAIT_FROM(owner, TRAIT_NON_FLAMMABLE, "dragon_flight"))
+		REMOVE_TRAIT(owner, TRAIT_NON_FLAMMABLE, "dragon_flight")
+	else
+		ADD_TRAIT(owner, TRAIT_NON_FLAMMABLE, "dragon_flight")
+
+	ADD_TRAIT(owner, TRAIT_NON_FLAMMABLE, "dragon_flight")
 	owner_xeno.toggle_intangibility("dragon_flight")
 
 /datum/status_effect/xeno/dragon_flight/proc/create_shadow()
@@ -844,7 +869,7 @@
 
 /datum/status_effect/xeno/dragon_flight/hover
 	id = "hover"
-	plasma_to_sustain = 3
+	plasma_to_sustain = 1
 	takeoff_flaps = 2
 	landing_delay = 1 SECONDS
 	flight_pixel_height = 50
@@ -864,11 +889,11 @@
 	if(hover_transition)
 		animate(owner, landing_delay * 3, easing = BACK_EASING, pixel_y = flight_pixel_height)
 		return
+
 	. = ..()
 
 /datum/status_effect/xeno/dragon_flight/hover/toggle_flight_properties()
 	DO_FLOATING_ANIM(owner, 2 SECONDS, 4)
-	return
 
 /datum/status_effect/xeno/dragon_flight/hover/disappear(time)
 	return

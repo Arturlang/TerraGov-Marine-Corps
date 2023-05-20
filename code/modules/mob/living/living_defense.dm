@@ -200,7 +200,7 @@
 	IgniteMob()
 
 // Add signals here too
-/mob/living/flamer_fire_act(burnlevel)
+/mob/living/flamer_fire_act(burnlevel, burnflags, firesource)
 	if(!burnlevel)
 		return
 	if(status_flags & (INCORPOREAL|GODMODE)) //Ignore incorporeal/invul targets

@@ -597,6 +597,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 	burnflags = BURN_HUMANS|BURN_ENVIRONMENT
 	color = COLOR_PURPLE
 	firelevel = 600
+	var/hivenumber
 
 /obj/item/weapon/gun/flamer/hydro_cannon
 	name = "underslung hydrocannon"

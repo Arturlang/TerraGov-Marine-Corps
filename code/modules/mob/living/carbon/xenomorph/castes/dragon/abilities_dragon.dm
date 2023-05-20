@@ -1,7 +1,7 @@
 
 /datum/action/xeno_action/activable/tail_stab
 	name = "Tail Stab"
-	// action_icon_state = "todo"
+	action_icon_state = "tail_stab"
 	desc = "Stab a human with your tail, immobilizing it, and setting it on fire after a moment. Also works while hovering or flying"
 	use_state_flags = XACT_USE_STAGGERED|XACT_IGNORE_HAND_BLOCKED
 	plasma_cost = 100
@@ -77,15 +77,16 @@
 
 /datum/action/xeno_action/activable/xeno_spit/fireball
 	name = "Spit a fireball"
+	action_icon_state = "fireball"
 	desc = "Belch a fiery fireball at your foes."
 	use_state_flags = XACT_IGNORE_HAND_BLOCKED
 	var/flying_spit_delay = 1.5 SECONDS
 	var/flying_spit_type = /datum/ammo/flamethrower/dragon_fire/flying
 
 /datum/action/xeno_action/activable/xeno_spit/fireball/alternate_fire_at(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
-	if(istype(newspit, /datum/ammo/flamethrower/dragon_fire))
-		var/datum/ammo/flamethrower/dragon_fire/dragon_spit = newspit
-		dragon_spit.hivenumber = spitter_xeno.hivenumber
+	// if(istype(newspit, /datum/ammo/flamethrower/dragon_fire))
+	// 	var/datum/ammo/flamethrower/dragon_fire/dragon_spit = newspit
+	// 	dragon_spit.hivenumber = spitter_xeno.hivenumber
 
 	if(spitter_xeno.has_status_effect(STATUS_EFFECT_FLIGHT))
 		return flight_spit(newspit, owner)
@@ -121,7 +122,6 @@
 	// We don't want to run this multiple times, because this causes fire to be spawned, and that causes damage
 	var/mob/living/mob_to_hurt = pick(mobs_in_turf) 
 	mob_to_hurt.do_projectile_hit(newspit)
-
 	qdel(newspit)
 
 // The hover spit should account for the dragon's offset
@@ -134,8 +134,9 @@
 
 /datum/action/xeno_action/flight
 	name = "Skycall"
+	action_icon_state = "dragon_flight_up"
 	desc = "Take flight and rain hell upon your enemies! Right click the action button to descend, and left click to ascend."
-	cooldown_timer = 3 MINUTES
+	cooldown_timer = 2 MINUTES
 	// Alternative for this, apply XACT_IGNORE_HAND_BLOCKED on flight activation
 	use_state_flags = XACT_IGNORE_HAND_BLOCKED
 	var/list/blacklisted_areas = list(
@@ -143,6 +144,10 @@
 		/area/shuttle
 	)
 	var/datum/status_effect/xeno/dragon_flight/flight
+
+/datum/action/xeno_action/flight/give_action(mob/living/L)
+	. = ..()
+	RegisterSignal(L, COMSIG_XENO_FLIGHT_END, .proc/on_flight_end)
 
 /datum/action/xeno_action/flight/can_use_action(atom/target, silent = FALSE, override_flags)
 	. = ..()
@@ -165,6 +170,11 @@
 		if(!silent)
 			owner.balloon_alert(owner, "can't fly in this area!")
 		return FALSE
+	var/mob/living/owner_living = owner
+	if(isliving(owner) && owner_living.on_fire)
+		if(!silent)
+			owner.balloon_alert(owner, "you can't fly while on fire!")
+		return FALSE
 
 /datum/action/xeno_action/flight/action_activate()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
@@ -182,11 +192,15 @@
 	var/takeoff_time = flight.flap_delay * flight.takeoff_flaps
 	owner_xeno.Immobilize(takeoff_time, TRUE)
 	if(!do_after(owner_xeno, takeoff_time))
+
 		if(takeoff_time)
 			owner_xeno.AdjustImmobilized(-takeoff_time)
 		add_cooldown(1 MINUTES)
 		alternate_action_activate(TRUE)
 		return fail_activate()
+	// disable healing while flying
+	DISABLE_BITFIELD(owner_xeno.xeno_caste.caste_flags, CASTE_INNATE_HEALING)
+
 
 /datum/action/xeno_action/flight/alternate_action_activate(silent = FALSE)
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
@@ -228,6 +242,10 @@
 	owner_xeno.AdjustImmobilized(takeoff_time)
 	return TRUE
 
+/datum/action/xeno_action/flight/proc/on_flight_end()
+	SIGNAL_HANDLER
+	action_icon_state = flight?.type == STATUS_EFFECT_FLIGHT ? "dragon_flight" : "dragon_hover"
+
 /datum/action/xeno_action/flight/proc/land()
 	if(!flight)
 		CRASH("Somehow called land() while not even flying, or the pointer to the flight effect was missing")
@@ -237,5 +255,6 @@
 
 /datum/action/xeno_action/flight/remove_action(mob/living/L)
 	. = ..()
+	UnregisterSignal(L, COMSIG_XENO_FLIGHT_END)
 	if(flight)
 		land()

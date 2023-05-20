@@ -3604,12 +3604,13 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	fire_color = "purple"
 	// A not so hot, but longer lasting flame
 	burnlevel = 10
-	burntime = 30
+	// burntime = 30
+	burntime = 99999
 	incendiary_strength = 0
 	fire_type = /obj/flamer_fire/autosmoothing/resin
 	var/added_spit_delay = 0
 	var/spit_cost = 150
-	var/hivenumber = XENO_HIVE_NORMAL
+	var/hivenumber
 
 /datum/ammo/flamethrower/dragon_fire/on_hit_mob(mob/M, obj/projectile/P)
 	. = ..()

@@ -33,7 +33,7 @@
 	soft_armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 45, FIRE = 60, ACID = 45)
 
 	// *** Ranged Attack *** //
-	// spit_delay = 5 SECONDS
+	spit_delay = 1 SECONDS
 	spit_types = list(/datum/ammo/flamethrower/dragon_fire)
 
 	// *** Minimap Icon *** //

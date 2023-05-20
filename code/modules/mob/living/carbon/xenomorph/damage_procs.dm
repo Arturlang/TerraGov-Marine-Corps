@@ -3,7 +3,14 @@
 		return
 	return ..()
 
-/mob/living/carbon/xenomorph/flamer_fire_act(burnlevel)
+/mob/living/carbon/xenomorph/flamer_fire_act(burnlevel, burnflags, firesource)
+	// friendly
+	if(firesource && istype(firesource, /obj/flamer_fire/autosmoothing/resin))
+		var/obj/flamer_fire/autosmoothing/resin/fire = firesource
+		if(fire.hivenumber == hivenumber)
+			return
+	if(!CHECK_BITFIELD(burnflags, BURN_XENOS))
+		return
 	if(xeno_caste.caste_flags & CASTE_FIRE_IMMUNE)
 		return
 	if(get_fire_resist() <= 0)
