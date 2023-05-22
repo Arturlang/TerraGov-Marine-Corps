@@ -56,6 +56,7 @@
 /// sent after world.maxx and/or world.maxy are expanded: (has_exapnded_world_maxx, has_expanded_world_maxy)
 #define COMSIG_GLOB_EXPANDED_WORLD_BOUNDS "!expanded_world_bounds"
 
+#define COMSIG_GLOB_XENOMORPH_EVOLVED "!xenomorph_evolved"
 //////////////////////////////////////////////////////////////////
 
 // /datum signals

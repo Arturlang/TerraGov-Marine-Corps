@@ -15,6 +15,7 @@ SUBSYSTEM_DEF(resinshaping)
 	var/total_structures_refunded = 0
 	/// Used to check wheter or not the subsystem is active , used for preventing refunds from early landings
 	var/active = TRUE
+	var/list/builder_xenos = list()
 
 /datum/controller/subsystem/resinshaping/stat_entry()
 	..("BUILT=[total_structures_built] REFUNDED=[total_structures_refunded]")
@@ -23,10 +24,29 @@ SUBSYSTEM_DEF(resinshaping)
 	SIGNAL_HANDLER
 	active = FALSE
 	UnregisterSignal(SSdcs, list(COMSIG_GLOB_OPEN_SHUTTERS_EARLY, COMSIG_GLOB_OPEN_TIMED_SHUTTERS_LATE,COMSIG_GLOB_OPEN_TIMED_SHUTTERS_XENO_HIVEMIND,COMSIG_GLOB_TADPOLE_LAUNCHED,COMSIG_GLOB_DROPPOD_LANDED))
+	for(var/datum/weakref/xeno_ref in builder_xenos)
+		if(!xeno_ref)
+			continue
+		var/mob/living/carbon/xenomorph/xeno = xeno_ref.resolve()
+		if(!xeno)
+			continue
+		for(var/datum/action/ability in xeno.actions)
+			if(istype(ability, /datum/action/xeno_action/activable/secrete_resin))
+				ability.remove_action(xeno)
+				break
 
 /datum/controller/subsystem/resinshaping/Initialize()
 	RegisterSignal(SSdcs, list(COMSIG_GLOB_OPEN_SHUTTERS_EARLY, COMSIG_GLOB_OPEN_TIMED_SHUTTERS_LATE,COMSIG_GLOB_OPEN_TIMED_SHUTTERS_XENO_HIVEMIND,COMSIG_GLOB_TADPOLE_LAUNCHED,COMSIG_GLOB_DROPPOD_LANDED), PROC_REF(toggle_off))
+	// Give all non-builder xenos the resin shaping ability
+	RegisterSignal(SSdcs, list(COMSIG_GLOB_XENO_CASTE_CHANGED), PROC_REF(give_resin_shaping))
 	return SS_INIT_SUCCESS
+
+/datum/controller/subsystem/resinshaping/proc/give_secrete_resin(mob/the_builder)
+	if(CHECK_BITFIELD(xeno.xeno_caste.caste_flags, CASTE_IS_BUILDER) && istype(the_builder, /mob/living/carbon/xenomorph/larva))
+		return
+	var/datum/action/xeno_action/building = new /datum/action/xeno_action/activable/secrete_resin()
+	building.give_action(the_builder)
+	builder_xenos += WEAKREF(the_builder)
 
 /// Retrieves a mob's building points using their ckey. Only works for mobs with clients.
 /datum/controller/subsystem/resinshaping/proc/get_building_points(mob/the_builder)

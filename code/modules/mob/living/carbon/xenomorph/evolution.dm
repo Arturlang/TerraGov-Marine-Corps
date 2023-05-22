@@ -117,7 +117,7 @@
 		new_xeno.upgrade_xeno(new_xeno.upgrade_next(), TRUE)
 
 	SEND_SIGNAL(src, COMSIG_XENOMORPH_EVOLVED, new_xeno)
-
+	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_XENOMORPH_EVOLVED, src, new_xeno)
 	for(var/obj/item/W in contents) //Drop stuff
 		dropItemToGround(W)
 
