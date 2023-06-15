@@ -23,7 +23,7 @@
 	weed.action_activate()
 	if(!(locate(/obj/alien/weeds/node) in drone.loc))
 		Fail("Weed action_activate did not spawn weeds under a drone!")
-	drone.plasma_stored = 0
+	drone.set_plasma(0)
 	if(weed.can_use_action())
 		Fail("Drone succeded in using weed ability while having no plasma!")
 

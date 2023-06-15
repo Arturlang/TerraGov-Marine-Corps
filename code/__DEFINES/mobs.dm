@@ -734,6 +734,11 @@ GLOBAL_LIST_INIT(xenoupgradetiers, list(XENO_UPGRADE_BASETYPE, XENO_UPGRADE_INVA
 #define TIME_TO_DISSOLVE 5 SECONDS
 #define SPIDERLING_RAGE_RANGE 10 // how close a nearby human has to be in order to be targeted
 
+//Dragon defines
+#define DRAGON_FIREBALL_SPEED 3
+#define DRAGON_CHARGE_SPEED 1
+#define DRAGON_CHARGE_RANGE 5
+
 //misc
 
 #define STANDARD_SLOWDOWN_REGEN 0.3

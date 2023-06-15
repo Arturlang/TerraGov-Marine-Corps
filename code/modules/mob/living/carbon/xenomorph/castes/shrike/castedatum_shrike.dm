@@ -29,9 +29,8 @@
 	maximum_active_caste = 1
 	upgrade_threshold = TIER_TWO_YOUNG_THRESHOLD
 
-	evolves_to = list(/mob/living/carbon/xenomorph/queen)
 	deevolves_to = /mob/living/carbon/xenomorph/drone
-	evolves_to = /mob/living/carbon/xenomorph/dragon
+	evolves_to = list(/mob/living/carbon/xenomorph/dragon)
 
 	// *** Flags *** //
 	caste_flags = CASTE_IS_INTELLIGENT|CASTE_IS_STRONG|CASTE_IS_BUILDER|CASTE_INSTANT_EVOLUTION

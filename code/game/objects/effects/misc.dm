@@ -248,3 +248,14 @@
 	// if(oldloc == loc)
 	// 	return
 	abstract_move(tracked.loc)
+
+
+/obj/effect/dragon_wings
+	icon = 'icons/Xeno/xeno_emmisives.dmi'
+	icon_state = "dragon_wings"
+	vis_flags = VIS_INHERIT_ID | VIS_INHERIT_DIR
+
+/obj/effect/firey_cloud_animation
+	icon = 'icons/effects/64x64.dmi
+	icon_state = "fire_target"
+	color = "orange"

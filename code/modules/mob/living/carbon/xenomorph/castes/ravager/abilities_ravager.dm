@@ -11,10 +11,13 @@
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_RAVAGER_CHARGE,
 	)
+	var/charge_distance = RAV_CHARGEDISTANCE
+	var/charge_speed = RAV_CHARGESPEED
+	var/list/signals = list(COMSIG_XENO_OBJ_THROW_HIT, COMSIG_MOVABLE_POST_THROW, COMSIG_XENO_LIVING_THROW_HIT)
 
 /datum/action/xeno_action/activable/charge/proc/charge_complete()
 	SIGNAL_HANDLER
-	UnregisterSignal(owner, list(COMSIG_XENO_OBJ_THROW_HIT, COMSIG_MOVABLE_POST_THROW, COMSIG_XENO_LIVING_THROW_HIT))
+	UnregisterSignal(owner, signals)
 
 /datum/action/xeno_action/activable/charge/proc/obj_hit(datum/source, obj/target, speed)
 	SIGNAL_HANDLER
@@ -42,7 +45,7 @@
 		return FALSE
 
 /datum/action/xeno_action/activable/charge/on_cooldown_finish()
-	to_chat(owner, span_xenodanger("Our exoskeleton quivers as we get ready to use Eviscerating Charge again."))
+	to_chat(owner, span_xenodanger("Our exoskeleton quivers as we get ready to use [name] again."))
 	playsound(owner, "sound/effects/xeno_newlarva.ogg", 50, 0, 1)
 	var/mob/living/carbon/xenomorph/ravager/X = owner
 	X.usedPounce = FALSE
@@ -61,7 +64,7 @@
 	X.usedPounce = TRUE //This has to come before throw_at, which checks impact. So we don't do end-charge specials when thrown
 	succeed_activate()
 
-	X.throw_at(A, RAV_CHARGEDISTANCE, RAV_CHARGESPEED, X)
+	X.throw_at(A, charge_distance, charge_speed, X)
 
 	add_cooldown()
 

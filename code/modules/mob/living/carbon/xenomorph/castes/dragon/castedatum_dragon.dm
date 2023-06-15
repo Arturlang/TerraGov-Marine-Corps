@@ -47,6 +47,7 @@
 		/datum/action/xeno_action/activable/tail_stab,
 		/datum/action/xeno_action/flight,
 		/datum/action/xeno_action/activable/xeno_spit/fireball,
+		/datum/action/xeno_action/activable/charge/hell_dash
 	)
 
 /datum/xeno_caste/dragon/young
@@ -149,5 +150,13 @@
 	soft_armor = list(MELEE = 15, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 15, BIO = 60, FIRE = 85, ACID = 60)
 
 	// *** Abilities *** //
-	// actions = list(
-	// )
+	actions = list(
+		/datum/action/xeno_action/xeno_resting,
+		/datum/action/xeno_action/watch_xeno,
+		/datum/action/xeno_action/activable/psydrain,
+		/datum/action/xeno_action/activable/tail_stab,
+		/datum/action/xeno_action/flight,
+		/datum/action/xeno_action/activable/xeno_spit/fireball,
+		/datum/action/xeno_action/activable/charge/hell_dash,
+		/datum/action/xeno_action/activable/incendiary_gas
+	)

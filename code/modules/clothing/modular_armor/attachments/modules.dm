@@ -44,7 +44,7 @@
 
 
 /obj/item/armor_module/module/valkyrie_autodoc/on_detach(obj/item/detaching_from, mob/user)
-	qdel(parent.GetComponent(/datum/component/suit_autodoc))
+	qdel(parent.GetComponent())
 	parent.RemoveElement(/datum/element/limb_support, supported_limbs)
 	return ..()
 

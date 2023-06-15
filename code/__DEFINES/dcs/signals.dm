@@ -361,6 +361,7 @@
 	#define COMSIG_GRAB_SUCCESSFUL_SELF_ATTACK (1<<0)
 
 // /obj/projectile signals
+#define COMSIG_PROJ_HIT "proj_hit"								//from base of obj/projectile/proc/do_projectile_hit(): (obj/projectile/proj), means the projectile has actually hit something
 #define COMSIG_PROJ_SCANTURF "proj_scanturf"
 	#define COMPONENT_PROJ_SCANTURF_TURFCLEAR (1<<0)
 	#define COMPONENT_PROJ_SCANTURF_TARGETFOUND (1<<1)
@@ -515,6 +516,7 @@
 #define COMSIG_XENOABILITY_PSYCHIC_TRACE "xenoability_psychic_trace"
 
 #define COMSIG_XENOMORPH_PLASMA_REGEN "xenomorph_plasma_regen"
+#define COMSIG_XENOMORPH_PLASMA_CHANGE "xenomorph_plasma_change"
 #define COMSIG_XENOMORPH_HEALTH_REGEN "xenomorph_health_regen"
 #define COMSIG_XENOMORPH_SUNDER_REGEN "xenomorph_sunder_regen"
 #define COMSIG_XENOMORPH_RESIN_JELLY_APPLIED "xenomorph_resin_jelly_applied"
@@ -807,6 +809,12 @@
 #define COMSIG_XENOABILITY_PSYCHIC_SHIELD "xenoability_psychic_shield"
 #define COMSIG_XENOABILITY_PSYCHIC_BLAST "xenoability_psychic_blast"
 #define COMSIG_XENOABILITY_PSYCHIC_CRUSH "xenoability_psychic_crush"
+
+#define COMSIG_XENOABILITY_TAIL_STAB "xenoability_tail_stab"
+#define COMSIG_XENOABILITY_FIREBALL "xenoability_fireball"
+#define COMSIG_XENOABILITY_FLIGHT "xenoability_flight"
+#define COMSIG_XENOABILITY_HELL_DASH "xenoability_hell_dash"
+#define COMSIG_XENOABILITY_INCENDIARY_GAS "xenoability_incendiary_gas"
 
 // throw parry signals
 #define COMSIG_THROW_PARRY_CHECK "throw_parry_check"

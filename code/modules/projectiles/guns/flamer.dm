@@ -400,13 +400,13 @@
 		/obj/item/attachable/magnetic_harness,
 	)
 
-/turf/proc/ignite(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, flame_color, burn_flags, fire_type = /obj/flamer_fire)
+/turf/proc/ignite(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, burn_flags, fire_type = /obj/flamer_fire)
 	//extinguish any flame present
 	var/obj/flamer_fire/F = locate(/obj/flamer_fire) in src
 	if(F)
 		qdel(F)
 
-	new fire_type(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, flame_color, burn_flags)
+	new fire_type(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
 
 	for(var/obj/structure/jungle/vines/vines in src)
 		QDEL_NULL(vines)
@@ -549,7 +549,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 		qdel(src)
 		return
 
-	update_icon()
+	updateicon()
 
 	if(!firelevel)
 		qdel(src)
@@ -596,8 +596,27 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 /obj/flamer_fire/autosmoothing/resin
 	burnflags = BURN_HUMANS|BURN_ENVIRONMENT
 	color = COLOR_PURPLE
-	firelevel = 600
+	luminosity = 5
 	var/hivenumber
+	var/obj/effect/map_text
+	// helper to deal with icon_states
+	var/debug_maptext = TRUE
+
+/obj/flamer_fire/autosmoothing/resin/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
+	. = ..()
+	if(debug_maptext)
+		map_text = new(loc)
+		map_text.maptext = "[icon_state]"
+
+/obj/flamer_fire/autosmoothing/resin/updateicon()
+	. = ..()
+	if(debug_maptext)
+		map_text.maptext = "[icon_state]"
+
+/obj/flamer_fire/autosmoothing/resin/Destroy()
+	. = ..()
+	if(map_text)
+		QDEL_NULL(map_text)
 
 /obj/item/weapon/gun/flamer/hydro_cannon
 	name = "underslung hydrocannon"

@@ -814,6 +814,7 @@
 	use_state_flags = XACT_USE_LYING|XACT_USE_BUCKLED|XACT_DO_AFTER_ATTACK
 	target_flags = XABB_MOB_TARGET
 	var/list/spit_sounds = list('sound/voice/alien_spitacid.ogg', 'sound/voice/alien_spitacid2.ogg')
+	var/icon_from_ammo = TRUE
 	///Current target that the xeno is targeting. This is for aiming.
 	var/current_target
 
@@ -826,8 +827,9 @@
 	return ..()
 
 /datum/action/xeno_action/activable/xeno_spit/update_button_icon()
-	var/mob/living/carbon/xenomorph/X = owner
-	action_icon_state = "shift_spit_[initial(X.ammo.icon_state)]"
+	if(icon_from_ammo)
+		var/mob/living/carbon/xenomorph/X = owner
+		action_icon_state = "shift_spit_[initial(X.ammo.icon_state)]"
 	return ..()
 
 /datum/action/xeno_action/activable/xeno_spit/action_activate()

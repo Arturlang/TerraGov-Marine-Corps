@@ -186,15 +186,24 @@
 	return TRUE
 
 /mob/living/carbon/xenomorph/proc/use_plasma(value)
-	plasma_stored = max(plasma_stored - value, 0)
-	update_action_button_icons()
+	if(value > 0)
+		value = -value
+	modify_plasma(value)
 
 /mob/living/carbon/xenomorph/proc/gain_plasma(value)
-	plasma_stored = min(plasma_stored + value, xeno_caste.plasma_max)
+	if(value < 0)
+		return
+	modify_plasma(value)
+
+// Exists for better readability
+/mob/living/carbon/xenomorph/proc/set_plasma(value)
+	modify_plasma(value, FALSE)
+
+/mob/living/carbon/xenomorph/proc/modify_plasma(plasma_amount, preserve_plasma = TRUE)
+	var/plasma_to_set = preserve_plasma ? plasma_stored + plasma_amount : plasma_amount
+	plasma_stored = clamp(plasma_to_set, 0, xeno_caste.plasma_max)
+	SEND_SIGNAL(src, COMSIG_XENOMORPH_PLASMA_CHANGE, plasma_amount)
 	update_action_button_icons()
-
-
-
 
 //Strip all inherent xeno verbs from your caste. Used in evolution.
 /mob/living/carbon/xenomorph/proc/remove_inherent_verbs()

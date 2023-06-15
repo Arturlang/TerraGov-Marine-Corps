@@ -641,7 +641,7 @@ So if we are on the 32th absolute pixel coordinate we are on tile 1, but if we a
 	return FALSE
 
 /atom/proc/do_projectile_hit(obj/projectile/proj)
-	return
+	SEND_SIGNAL(src, COMSIG_PROJ_HIT, proj)
 
 
 /obj/projectile_hit(obj/projectile/proj, cardinal_move, uncrossing)
@@ -671,6 +671,7 @@ So if we are on the 32th absolute pixel coordinate we are on tile 1, but if we a
 	return prob(hit_chance)
 
 /obj/do_projectile_hit(obj/projectile/proj)
+	..()
 	proj.ammo.on_hit_obj(src, proj)
 	if(QDELETED(src)) //on_hit_obj could delete the object
 		return
@@ -819,6 +820,7 @@ So if we are on the 32th absolute pixel coordinate we are on tile 1, but if we a
 
 
 /mob/living/do_projectile_hit(obj/projectile/proj)
+	..()
 	proj.ammo.on_hit_mob(src, proj)
 	bullet_act(proj)
 

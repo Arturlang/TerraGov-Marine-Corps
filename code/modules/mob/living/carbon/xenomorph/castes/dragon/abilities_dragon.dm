@@ -4,6 +4,9 @@
 	action_icon_state = "tail_stab"
 	desc = "Stab a human with your tail, immobilizing it, and setting it on fire after a moment. Also works while hovering or flying"
 	use_state_flags = XACT_USE_STAGGERED|XACT_IGNORE_HAND_BLOCKED
+	keybinding_signals = list(
+		KEYBINDING_NORMAL = COMSIG_XENOABILITY_TAIL_STAB
+	)
 	plasma_cost = 100
 	cooldown_timer = 7 SECONDS
 	var/tail_stab_range = 2
@@ -11,7 +14,7 @@
 
 /datum/action/xeno_action/activable/tail_stab/can_use_ability(atom/target, silent = FALSE, override_flags)
 	. = ..()
-	if(!. || owner.do_actions)
+	if(!.)
 		return FALSE
 	var/mob/living/target_living = target
 	if(!isliving(target) || target_living.stat == DEAD)
@@ -30,7 +33,6 @@
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	initial_attack(target, owner_xeno)
 	var/tail_stab_start_time = world.time
-
 	if(!do_after(owner_xeno, tail_stab_delay))
 		owner_xeno.balloon_alert(owner_xeno, "You give up on lighting [target] on fire!")
 		// Remove the remaining stun that's left
@@ -77,16 +79,20 @@
 
 /datum/action/xeno_action/activable/xeno_spit/fireball
 	name = "Spit a fireball"
-	action_icon_state = "fireball"
+	action_icon_state = "dragon_fireball"
 	desc = "Belch a fiery fireball at your foes."
+	keybinding_signals = list(
+		KEYBINDING_NORMAL = COMSIG_XENOABILITY_FIREBALL
+	)
 	use_state_flags = XACT_IGNORE_HAND_BLOCKED
+	icon_from_ammo = FALSE
 	var/flying_spit_delay = 1.5 SECONDS
 	var/flying_spit_type = /datum/ammo/flamethrower/dragon_fire/flying
 
 /datum/action/xeno_action/activable/xeno_spit/fireball/alternate_fire_at(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
-	// if(istype(newspit, /datum/ammo/flamethrower/dragon_fire))
-	// 	var/datum/ammo/flamethrower/dragon_fire/dragon_spit = newspit
-	// 	dragon_spit.hivenumber = spitter_xeno.hivenumber
+	var/datum/ammo/flamethrower/dragon_fire/dragon_spit = newspit
+	if(istype(newspit, dragon_spit))
+		dragon_spit.hivenumber = spitter_xeno.hivenumber
 
 	if(spitter_xeno.has_status_effect(STATUS_EFFECT_FLIGHT))
 		return flight_spit(newspit, owner)
@@ -94,19 +100,22 @@
 	else if(spitter_xeno.has_status_effect(STATUS_EFFECT_HOVER))
 		return hover_spit(newspit, owner)
 	else
-		// False will make it spit normally
+		// returning false will make it spit normally
 		return FALSE
 
 // The flight spit drops down from above, as the dragon is invisible while flying
 /datum/action/xeno_action/activable/xeno_spit/fireball/proc/flight_spit(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
 	var/turf/target_turf = get_turf(target)
-	var/obj/effect/effect = new /obj/effect(target_turf)
-	effect.icon = 'icons/misc/mark.dmi'
-	effect.icon_state = "X"
-	effect.color = "purple"
-	QDEL_IN(effect, 3 SECONDS)
+	var/obj/effect/effect = new /obj/effect/firey_cloud_animation(target_turf)
+	QDEL_IN(effect, 4 SECONDS)
 	
+	// First, make it invisible and move it into place
+	newspit.y_offset = 255
+	newspit.alpha = 0
+	newspit.forceMove(target_turf)
 	newspit.dir = SOUTH
+
+	animate(newspit, alpha = 255, time = 0.5 SECONDS)
 	animate(newspit, pixel_y = 0, time = flying_spit_delay, easing = CIRCULAR_EASING)
 	addtimer(CALLBACK(src, .proc/flight_spit_drop, newspit, target_turf), flying_spit_delay)
 	return continue_autospit()
@@ -136,6 +145,9 @@
 	name = "Skycall"
 	action_icon_state = "dragon_flight_up"
 	desc = "Take flight and rain hell upon your enemies! Right click the action button to descend, and left click to ascend."
+	keybinding_signals = list(
+		KEYBINDING_NORMAL = COMSIG_XENOABILITY_FLIGHT
+	)
 	cooldown_timer = 2 MINUTES
 	// Alternative for this, apply XACT_IGNORE_HAND_BLOCKED on flight activation
 	use_state_flags = XACT_IGNORE_HAND_BLOCKED
@@ -149,11 +161,9 @@
 	. = ..()
 	RegisterSignal(L, COMSIG_XENO_FLIGHT_END, .proc/on_flight_end)
 
-/datum/action/xeno_action/flight/can_use_action(atom/target, silent = FALSE, override_flags)
+/datum/action/xeno_action/flight/can_use_action(atom/target, silent, override_flags)
 	. = ..()
 	if(!.)
-		return FALSE
-	if(owner.do_actions)
 		return FALSE
 	var/invalid_area = FALSE
 	var/area/owner_area = get_area(owner)
@@ -255,6 +265,50 @@
 
 /datum/action/xeno_action/flight/remove_action(mob/living/L)
 	. = ..()
-	UnregisterSignal(L, COMSIG_XENO_FLIGHT_END)
 	if(flight)
 		land()
+	UnregisterSignal(L, COMSIG_XENO_FLIGHT_END)
+
+
+/datum/action/xeno_action/activable/charge/hell_dash
+	name = "Hell Dash"
+	desc = "Dash forward at high speeds, burning anything in your path."
+	action_icon_state = "hell_drive"
+	keybinding_signals = list(
+		KEYBINDING_NORMAL = COMSIG_XENOABILITY_HELL_DASH
+	)
+	cooldown_timer = 20 SECONDS
+	plasma_cost = 200
+	charge_distance = DRAGON_CHARGE_RANGE
+	charge_speed =  DRAGON_CHARGE_SPEED
+	var/fire_radius = 1
+
+// /datum/action/xeno_action/activable/charge/hell_dash/charge_complete()
+// 	. = ..()
+// 	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
+
+/datum/action/xeno_action/activable/charge/hell_dash/use_ability(atom/A)
+	. = ..()
+	signals.Add(COMSIG_MOVABLE_MOVED)
+	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, .proc/drop_fire)
+
+/datum/action/xeno_action/activable/charge/hell_dash/proc/drop_fire()
+	SIGNAL_HANDLER
+	// Drop fire around the owner
+	for(var/turf/turf in RANGE_TURFS(fire_radius, T))
+		turf.ignite(20, 20, "purple", 0, 20, "purple", BURN_HUMANS, /obj/flamer_fire/autosmoothing/resin)
+
+/datum/action/xeno_action/activable/incendiary_gas
+	name = "Incendiary Gas"
+	desc = "Throws a glob that expands into a cloud of incendiary gas that can be ignited with your other abilities"
+	action_icon_state = "hell_gas"
+	keybinding_signals = list(
+		KEYBINDING_NORMAL = COMSIG_XENOABILITY_INCENDIARY_GAS
+	)
+	cooldown_timer = 2 MINUTES
+	plasma_cost = 500
+
+/datum/action/xeno_action/activable/incendiary_gas/use_ability(atom/A)
+	if(!do_after(X, 3 SECONDS, FALSE, null, BUSY_ICON_HOSTILE))
+		add_cooldown(cooldown_timer * 0.1)
+		return

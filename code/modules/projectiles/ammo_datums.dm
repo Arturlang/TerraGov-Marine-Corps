@@ -3605,7 +3605,7 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	// A not so hot, but longer lasting flame
 	burnlevel = 10
 	// burntime = 30
-	burntime = 99999
+	burntime = 999
 	incendiary_strength = 0
 	fire_type = /obj/flamer_fire/autosmoothing/resin
 	var/added_spit_delay = 0

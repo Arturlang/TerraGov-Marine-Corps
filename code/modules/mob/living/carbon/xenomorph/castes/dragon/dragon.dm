@@ -12,3 +12,28 @@
 	tier = XENO_TIER_FOUR
 	upgrade = XENO_UPGRADE_ZERO
 	mob_size = MOB_SIZE_BIG
+	var/obj/effect/dragon_wings/wing_effect
+
+/mob/living/carbon/xenomorph/dragon/update_icons(state_change = TRUE)
+	. = ..()
+	if(wing_effect && state_change)
+		UnregisterSignal(src, COMSIG_XENOMORPH_PLASMA_REGEN)
+		vis_contents.Remove(wing_effect)
+		QDEL_NULL(wing_effect)
+
+	if(!resting && xeno_caste && !wing_effect)
+		wing_effect = new()
+		vis_contents += wing_effect
+		RegisterSignal(src, COMSIG_XENOMORPH_PLASMA_REGEN, .proc/update_wing_alpha)
+
+		overlays += emissive_appearance(wing_effect.icon, wing_effect.icon_state)
+
+/mob/living/carbon/xenomorph/dragon/Destroy()
+	. = ..()
+	if(wing_effect)
+		QDEL_NULL(wing_effect)
+
+/mob/living/carbon/xenomorph/dragon/proc/update_wing_alpha()
+	SIGNAL_HANDLER
+	var/alpha_result = (xeno_caste.plasma_max / plasma_stored) * 255
+	wing_effect.alpha = clamp(alpha_result, 0, 255)

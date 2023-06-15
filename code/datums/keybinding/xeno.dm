@@ -839,3 +839,39 @@
 	description = "Channel an expanding AOE crush effect, activating it again pre-maturely crushes enemies over an area."
 	keybind_signal = COMSIG_XENOABILITY_PSYCHIC_CRUSH
 	hotkey_keys = list("Q")
+
+/datum/keybinding/xeno/tail_stab
+	name = "Tail Stab"
+	full_name = "Dragon: Tail Stab"
+	description = "Stab your tail into a target, setting them on fire."
+	keybind_signal = COMSIG_XENOABILITY_TAIL_STAB
+	hotkey_keys = list("E")
+
+/datum/keybinding/xeno/fireball
+	name = "Fireball"
+	full_name = "Dragon: Fireball"
+	description = "Shoot a fireball at your target."
+	keybind_signal = COMSIG_XENOABILITY_FIREBALL
+	hotkey_keys = list("R")
+
+/datum/keybinding/xeno/flight
+	name = "Flight"
+	full_name = "Dragon: Flight"
+	description = "Take flight, increasing the power of your other abilities."
+	keybind_signal = COMSIG_XENOABILITY_FLIGHT
+	hotkey_keys = list("Q")
+
+
+/datum/keybinding/xeno/hell_dash
+	name = "Hell Dash"
+	full_name = "Dragon: Hell Dash"
+	description = "Dash forward, leaving a trail of fire behind you."
+	keybind_signal = COMSIG_XENOABILITY_HELL_DASH
+	hotkey_keys = list("E")
+
+/datum/keybinding/xeno/incendiary_gas
+	name = "Incendiary Gas"
+	full_name = "Dragon: Incendiary Gas"
+	description = "Throw a glob that explodes into a cloud of incendiary gas."
+	keybind_signal = COMSIG_XENOABILITY_INCENDIARY_GAS
+	hotkey_keys = list("F")
