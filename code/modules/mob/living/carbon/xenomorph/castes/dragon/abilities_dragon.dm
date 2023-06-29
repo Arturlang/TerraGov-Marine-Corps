@@ -88,37 +88,41 @@
 	icon_from_ammo = FALSE
 	var/flying_spit_delay = 1.5 SECONDS
 	var/flying_spit_type = /datum/ammo/flamethrower/dragon_fire/flying
+	var/obj/effect/firey_cloud_animation/flying_spit_target_effect
 
-/datum/action/xeno_action/activable/xeno_spit/fireball/alternate_fire_at(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
+/datum/action/xeno_action/activable/xeno_spit/fireball/alternate_fire_at(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
 	var/datum/ammo/flamethrower/dragon_fire/dragon_spit = newspit
-	if(istype(newspit, dragon_spit))
+	if(istype(dragon_spit))
 		dragon_spit.hivenumber = spitter_xeno.hivenumber
 
 	if(spitter_xeno.has_status_effect(STATUS_EFFECT_FLIGHT))
-		return flight_spit(newspit, owner)
+		return flight_spit(newspit, spit_ammo, owner)
 	// Hover spit uses normal spit, but with a different animation
-	else if(spitter_xeno.has_status_effect(STATUS_EFFECT_HOVER))
-		return hover_spit(newspit, owner)
+	if(spitter_xeno.has_status_effect(STATUS_EFFECT_HOVER))
+		return hover_spit(newspit, spit_ammo, owner)
 	else
 		// returning false will make it spit normally
 		return FALSE
 
 // The flight spit drops down from above, as the dragon is invisible while flying
-/datum/action/xeno_action/activable/xeno_spit/fireball/proc/flight_spit(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
+/datum/action/xeno_action/activable/xeno_spit/fireball/proc/flight_spit(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
 	var/turf/target_turf = get_turf(target)
-	var/obj/effect/effect = new /obj/effect/firey_cloud_animation(target_turf)
-	QDEL_IN(effect, 4 SECONDS)
-	
+	flying_spit_target_effect = new(target_turf)
+
 	// First, make it invisible and move it into place
 	newspit.y_offset = 255
 	newspit.alpha = 0
 	newspit.forceMove(target_turf)
 	newspit.dir = SOUTH
-
+	
+	RegisterSignal(newspit, COMSIG_PROJ_HIT, .proc/delete_effect)
 	animate(newspit, alpha = 255, time = 0.5 SECONDS)
 	animate(newspit, pixel_y = 0, time = flying_spit_delay, easing = CIRCULAR_EASING)
-	addtimer(CALLBACK(src, .proc/flight_spit_drop, newspit, target_turf), flying_spit_delay)
+	addtimer(CALLBACK(src, .proc/flight_spit_drop, newspit, target, target_turf), flying_spit_delay)
 	return continue_autospit()
+
+/datum/action/xeno_action/activable/xeno_spit/fireball/proc/delete_effect()
+	QDEL_NULL(flying_spit_target_effect)
 
 /datum/action/xeno_action/activable/xeno_spit/fireball/proc/flight_spit_drop(obj/projectile/newspit, turf/target_turf)
 	// Make a list of all the mobs in the turf
@@ -134,12 +138,11 @@
 	qdel(newspit)
 
 // The hover spit should account for the dragon's offset
-/datum/action/xeno_action/activable/xeno_spit/fireball/proc/hover_spit(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
+/datum/action/xeno_action/activable/xeno_spit/fireball/proc/hover_spit(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
 	ENABLE_BITFIELD(newspit.ammo?.flags_ammo_behavior, AMMO_PASS_THROUGH_MOVABLE)
 	newspit.pixel_y = spitter_xeno.pixel_y
 	animate(newspit, pixel_y = 0, time = flying_spit_delay, easing = LINEAR_EASING)
-	// False will make it spit normally
-	return FALSE
+	newspit.fire_at(target, owner, null, spit_ammo.max_range, spit_ammo.shell_speed)
 
 /datum/action/xeno_action/flight
 	name = "Skycall"
@@ -295,7 +298,7 @@
 /datum/action/xeno_action/activable/charge/hell_dash/proc/drop_fire()
 	SIGNAL_HANDLER
 	// Drop fire around the owner
-	for(var/turf/turf in RANGE_TURFS(fire_radius, T))
+	for(var/turf/turf in RANGE_TURFS(fire_radius, owner))
 		turf.ignite(20, 20, "purple", 0, 20, "purple", BURN_HUMANS, /obj/flamer_fire/autosmoothing/resin)
 
 /datum/action/xeno_action/activable/incendiary_gas
@@ -309,6 +312,16 @@
 	plasma_cost = 500
 
 /datum/action/xeno_action/activable/incendiary_gas/use_ability(atom/A)
-	if(!do_after(X, 3 SECONDS, FALSE, null, BUSY_ICON_HOSTILE))
+	owner.face_atom(A)
+	// todo: figure out a better message
+	owner.balloon_alert_to_viewers("[owner] starts to gather resin in it's mouth!")
+	if(!do_after(owner, 3 SECONDS, FALSE, null, BUSY_ICON_HOSTILE))
 		add_cooldown(cooldown_timer * 0.1)
 		return
+	var/obj/projectile/P = new /obj/projectile(get_turf(owner))
+	var/datum/ammo/xeno/boiler_gas/glob = new /datum/ammo/xeno/boiler_gas()
+	var/mob/living/carbon/xenomorph/owner_xeno = owner
+	glob.hive_number = owner_xeno.hivenumber
+	P.generate_bullet(glob)
+	P.fire_at(A, owner, null, glob.max_range, glob.shell_speed)
+	add_cooldown()

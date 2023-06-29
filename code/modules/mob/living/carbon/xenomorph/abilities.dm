@@ -916,7 +916,7 @@
 	newspit.generate_bullet(X.ammo, X.ammo.damage * SPIT_UPGRADE_BONUS(X))
 	newspit.def_zone = X.get_limbzone_target()
 	// Let other ability subtypes spit differently
-	var/alternate_fire_at = alternate_fire_at(newspit, owner, current_target)
+	var/alternate_fire_at = alternate_fire_at(newspit, X.ammo, X)
 	if(alternate_fire_at)
 		return alternate_fire_at
 	newspit.fire_at(current_target, X, null, X.ammo.max_range, X.ammo.shell_speed)
@@ -933,7 +933,7 @@
 /datum/action/xeno_action/activable/xeno_spit/proc/play_spit_sound()
 	playsound(owner.loc, pick(spit_sounds), 25, TRUE)
 
-/datum/action/xeno_action/activable/xeno_spit/proc/alternate_fire_at(obj/projectile/newspit, mob/living/carbon/xenomorph/spitter_xeno)
+/datum/action/xeno_action/activable/xeno_spit/proc/alternate_fire_at(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
 	return FALSE
 
 ///Resets the autofire component.

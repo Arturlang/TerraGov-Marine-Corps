@@ -3206,6 +3206,7 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	var/passed_turf_smoke_type = /datum/effect_system/smoke_spread/xeno/neuro/light
 	///We're going to reuse one smoke spread system repeatedly to cut down on processing.
 	var/datum/effect_system/smoke_spread/xeno/trail_spread_system
+	var/hive_number = 0
 
 /datum/ammo/xeno/boiler_gas/on_leave_turf(turf/T, atom/firer, obj/projectile/proj)
 	if(isxeno(firer))
@@ -3364,6 +3365,14 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	accuracy = 100
 	accurate_range = 30
 	shell_speed = 1.5
+
+/datum/ammo/xeno/boiler_gas/incendiary
+	name = "incendiary glob of gas"
+	icon_key = ""
+	damage = 20
+	max_range = 12
+	hit_paralyze_time = 0
+	passed_turf_smoke_type = /obj/effect/particle_effect/smoke/xeno/incendiary
 
 /datum/ammo/xeno/hugger
 	name = "hugger ammo"
@@ -3552,13 +3561,13 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	
 	switch(ignite_shape)
 		if(SINGLE)
-			T.ignite(burntime, burnlevel, fire_color, 0, 0, burn_flags, burn_flags, fire_type)
+			T.ignite(burntime, burnlevel, fire_color, 0, 0, burn_flags, fire_type)
 		if(NO_CORNERS)
-			T.ignite(burntime, burnlevel, fire_color, 0, 0, burn_flags, burn_flags, fire_type)
+			T.ignite(burntime, burnlevel, fire_color, 0, 0, burn_flags, fire_type)
 			for(var/turf/turf in range(ignite_range, T))
 				var/dir = get_dir(T, turf)
 				if(dir in GLOB.cardinals)
-					turf.ignite(burntime, burnlevel, fire_color, 0, 0, fire_color, burn_flags, fire_type)
+					turf.ignite(burntime, burnlevel, fire_color, 0, 0, burn_flags, fire_type)
 
 /datum/ammo/flamethrower/on_hit_mob(mob/M, obj/projectile/P)
 	drop_flame(get_turf(M))
@@ -3618,10 +3627,16 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 		var/mob/living/carbon/human/human = M
 		human.apply_status_effect(STATUS_EFFECT_DRAGONFIRE, 10)
 
+
 /datum/ammo/flamethrower/dragon_fire/flying
 	ignite_range = 1
 	damage = 20
 
+/datum/ammo/flamethrower/dragon_fire/on_hit_obj(obj/O, obj/projectile/proj)
+	for(var/obj/item/thing in get_turf(src))
+		if(isliving(thing))
+			continue
+		thing.fire_act()
 /datum/ammo/water
 	name = "water"
 	icon_state = "pulse1"

@@ -256,6 +256,7 @@
 	vis_flags = VIS_INHERIT_ID | VIS_INHERIT_DIR
 
 /obj/effect/firey_cloud_animation
-	icon = 'icons/effects/64x64.dmi
+	icon = 'icons/effects/64x64.dmi'
 	icon_state = "fire_target"
-	color = "orange"
+	color = COLOR_ORANGE
+	pixel_x = -16

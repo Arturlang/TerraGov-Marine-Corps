@@ -275,6 +275,7 @@
 	lifetime = 6
 	expansion_speed = 3
 	smoke_traits = SMOKE_XENO
+	var/hive_number = 0
 
 //Xeno acid smoke.
 /obj/effect/particle_effect/smoke/xeno/burn
@@ -333,6 +334,20 @@
 	color = "#f1ddcf" //A pinkish for now.
 	smoke_traits = SMOKE_XENO|SMOKE_XENO_OZELOMELYN|SMOKE_GASP|SMOKE_COUGH
 
+/obj/effect/particle_effect/smoke/xeno/incendiary
+	color = "#72259f"
+	smoke_traits = SMOKE_XENO|SMOKE_GASP|SMOKE_COUGH
+
+/obj/effect/particle_effect/smoke/xeno/incendiary/fire_act()
+	. = ..()
+	// call fire_act on smoke around us
+	for(var/obj/effect/particle_effect/smoke/xeno/incendiary/smoke in orange(1))
+		if(!istype(smoke, src.type) && smoke == src)
+			continue
+		smoke.fire_act()
+	var/obj/flamer_fire/autosmoothing/resin/fire = new(get_turf(src))
+	fire.hivenumber = hive_number
+
 /////////////////////////////////////////////
 // Smoke spreads
 /////////////////////////////////////////////
@@ -358,11 +373,13 @@
 /datum/effect_system/smoke_spread/xeno
 	smoke_type = /obj/effect/particle_effect/smoke/xeno
 	var/strength = 1
+	var/hive_number
 
 /datum/effect_system/smoke_spread/xeno/start()
 	if(QDELETED(location) && !QDELETED(holder))
 		location = get_turf(holder)
 	var/obj/effect/particle_effect/smoke/xeno/S = new smoke_type(location, range, lifetime, src)
+	S.hive_number = hive_number
 	S.strength = strength
 
 /datum/effect_system/smoke_spread/xeno/acid
@@ -394,6 +411,9 @@
 
 /datum/effect_system/smoke_spread/xeno/ozelomelyn
 	smoke_type = /obj/effect/particle_effect/smoke/xeno/ozelomelyn
+
+/datum/effect_system/smoke_spread/xeno/indendiary
+	smoke_type = /obj/effect/particle_effect/smoke/xeno/incendiary
 
 /////////////////////////////////////////////
 // Chem smoke
