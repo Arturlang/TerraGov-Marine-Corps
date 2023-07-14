@@ -286,22 +286,19 @@
 	charge_speed =  DRAGON_CHARGE_SPEED
 	var/fire_radius = 1
 
-// /datum/action/xeno_action/activable/charge/hell_dash/charge_complete()
-// 	. = ..()
-// 	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
-
 /datum/action/xeno_action/activable/charge/hell_dash/use_ability(atom/A)
 	. = ..()
-	signals.Add(COMSIG_MOVABLE_MOVED)
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, .proc/drop_fire)
+
+/datum/action/xeno_action/activable/charge/hell_dash/charge_complete()
+	. = ..()
+	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
 
 /datum/action/xeno_action/activable/charge/hell_dash/proc/drop_fire()
 	SIGNAL_HANDLER
 	// Drop fire around the owner
 	for(var/turf/turf in RANGE_TURFS(fire_radius, owner))
 		turf.ignite(20, 20, "purple", 0, 20, "purple", BURN_HUMANS, /obj/flamer_fire/autosmoothing/resin)
-
-/datum/action/xeno_action/activable/incendiary_gas
 	name = "Incendiary Gas"
 	desc = "Throws a glob that expands into a cloud of incendiary gas that can be ignited with your other abilities"
 	action_icon_state = "hell_gas"
@@ -319,7 +316,7 @@
 		add_cooldown(cooldown_timer * 0.1)
 		return
 	var/obj/projectile/P = new /obj/projectile(get_turf(owner))
-	var/datum/ammo/xeno/boiler_gas/glob = new /datum/ammo/xeno/boiler_gas()
+	var/datum/ammo/xeno/boiler_gas/glob = new /datum/ammo/xeno/boiler_gas/incendiary()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	glob.hive_number = owner_xeno.hivenumber
 	P.generate_bullet(glob)

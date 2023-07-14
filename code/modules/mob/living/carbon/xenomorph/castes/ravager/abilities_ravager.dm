@@ -13,11 +13,10 @@
 	)
 	var/charge_distance = RAV_CHARGEDISTANCE
 	var/charge_speed = RAV_CHARGESPEED
-	var/list/signals = list(COMSIG_XENO_OBJ_THROW_HIT, COMSIG_MOVABLE_POST_THROW, COMSIG_XENO_LIVING_THROW_HIT)
 
 /datum/action/xeno_action/activable/charge/proc/charge_complete()
 	SIGNAL_HANDLER
-	UnregisterSignal(owner, signals)
+	UnregisterSignal(owner, list(COMSIG_XENO_OBJ_THROW_HIT, COMSIG_MOVABLE_POST_THROW, COMSIG_XENO_LIVING_THROW_HIT))
 
 /datum/action/xeno_action/activable/charge/proc/obj_hit(datum/source, obj/target, speed)
 	SIGNAL_HANDLER
