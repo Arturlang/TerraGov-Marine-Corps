@@ -245,10 +245,19 @@
 
 /obj/effect/following_shadow/proc/update_position(atom/movable/tracked, atom/mover, atom/oldloc, direction)
 	SIGNAL_HANDLER
-	// if(oldloc == loc)
-	// 	return
 	abstract_move(tracked.loc)
 
+/obj/effect/following_shadow/dragon
+	icon = 'icons/Xeno/dragon_shadow.dmi'
+	pixel_x = -64
+	pixel_y = -64
+
+/obj/effect/following_shadow/dragon/update_position(atom/movable/tracked, atom/mover, atom/oldloc, direction)
+	. = ..()
+	// Rotate the shadow to match the direction of the dragon
+	if(tracked && oldloc && direction)
+		var/angle = Get_Angle(tracked.loc, oldloc) 
+		animate(src, 0.5 SECONDS, transform = turn(direction, Get_Angle(tracked.loc, oldloc)))
 
 /obj/effect/dragon_wings
 	icon = 'icons/Xeno/xeno_emmisives.dmi'

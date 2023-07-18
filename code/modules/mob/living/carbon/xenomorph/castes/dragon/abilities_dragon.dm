@@ -183,16 +183,21 @@
 		if(!silent)
 			owner.balloon_alert(owner, "can't fly in this area!")
 		return FALSE
-	var/mob/living/owner_living = owner
-	if(isliving(owner) && owner_living.on_fire)
+	var/mob/living/carbon/xenomorph/xeno_owner = owner
+	if(xeno_owner?.on_fire)
 		if(!silent)
 			owner.balloon_alert(owner, "you can't fly while on fire!")
+		return FALSE
+	// Have to have atleast 50% plasma to fly
+	if(xeno_owner?.xeno_caste?.plasma_max * 0.5 >= xeno_owner?.plasma_stored)
+		if(!silent)
+			owner.balloon_alert(owner, "you need to have atleast 50% plasma to fly!")
 		return FALSE
 
 /datum/action/xeno_action/flight/action_activate()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	if(flight)
-		if(flight.hover_transition)
+		if(flight.transition)
 			return fail_activate()
 		// If we're already at max height, tell them how to descend
 		if(flight.type == STATUS_EFFECT_FLIGHT)
@@ -200,20 +205,20 @@
 			//  but having a way to inform the player how to do it themselves is better
 			owner_xeno.balloon_alert(owner_xeno, "right click the action button to land!")
 			return fail_activate()
+
 	if(!ascend_to_flight_or_hover())
 		return
+
 	var/takeoff_time = flight.flap_delay * flight.takeoff_flaps
 	owner_xeno.Immobilize(takeoff_time, TRUE)
 	if(!do_after(owner_xeno, takeoff_time))
-
 		if(takeoff_time)
 			owner_xeno.AdjustImmobilized(-takeoff_time)
 		add_cooldown(1 MINUTES)
 		alternate_action_activate(TRUE)
 		return fail_activate()
-	// disable healing while flying
-	DISABLE_BITFIELD(owner_xeno.xeno_caste.caste_flags, CASTE_INNATE_HEALING)
 
+	update_action_icon()
 
 /datum/action/xeno_action/flight/alternate_action_activate(silent = FALSE)
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
@@ -227,6 +232,7 @@
 	switch(flight.type)
 		if(STATUS_EFFECT_FLIGHT)
 			flight = flight.transition_to_hover()
+			update_action_icon()
 		if(STATUS_EFFECT_HOVER)
 			// Full cooldown if we're landed on the ground.
 			add_cooldown()
@@ -241,11 +247,12 @@
 		var/area/owner_area = get_area(owner)
 		owner_xeno.balloon_alert_to_viewers(owner_area.ceiling ? "burrows through the thin roof!" : "takes flight!")
 		status_effect_to_add = STATUS_EFFECT_HOVER
+		ADD_TRAIT(owner_xeno, TRAIT_NOPLASMAREGEN, "flight")
 
 	else if(is_hovering)
 		var/turf/turf = get_turf(owner)
 		turf.balloon_alert_to_viewers("[owner_xeno] begins to ascend to the skies!")
-		status_effect_to_add = STATUS_EFFECT_FLIGHT
+		flight.transition_to_flight()
 
 	if(!status_effect_to_add)
 		return FALSE
@@ -257,13 +264,20 @@
 
 /datum/action/xeno_action/flight/proc/on_flight_end()
 	SIGNAL_HANDLER
-	action_icon_state = flight?.type == STATUS_EFFECT_FLIGHT ? "dragon_flight" : "dragon_hover"
+	action_icon_state = initial(action_icon_state)
+
+/datum/action/xeno_action/flight/proc/update_action_icon()
+	if(!flight)
+		action_icon_state = "dragon_flight_up"
+	else 
+		action_icon_state = flight?.type == STATUS_EFFECT_FLIGHT ? "dragon_flight_crash" : "dragon_flight_hover"
 
 /datum/action/xeno_action/flight/proc/land()
 	if(!flight)
 		CRASH("Somehow called land() while not even flying, or the pointer to the flight effect was missing")
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	owner_xeno.remove_status_effect(flight)
+	REMOVE_TRAIT(owner_xeno, TRAIT_NOPLASMAREGEN, "flight")
 	flight = null
 
 /datum/action/xeno_action/flight/remove_action(mob/living/L)
@@ -272,7 +286,6 @@
 		land()
 	UnregisterSignal(L, COMSIG_XENO_FLIGHT_END)
 
-
 /datum/action/xeno_action/activable/charge/hell_dash
 	name = "Hell Dash"
 	desc = "Dash forward at high speeds, burning anything in your path."
@@ -280,7 +293,7 @@
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_HELL_DASH
 	)
-	cooldown_timer = 20 SECONDS
+	cooldown_timer = 40 SECONDS
 	plasma_cost = 200
 	charge_distance = DRAGON_CHARGE_RANGE
 	charge_speed =  DRAGON_CHARGE_SPEED
@@ -298,7 +311,10 @@
 	SIGNAL_HANDLER
 	// Drop fire around the owner
 	for(var/turf/turf in RANGE_TURFS(fire_radius, owner))
-		turf.ignite(20, 20, "purple", 0, 20, "purple", BURN_HUMANS, /obj/flamer_fire/autosmoothing/resin)
+		turf.ignite(20, 20, "purple", 0, 20, BURN_HUMANS, /obj/flamer_fire/autosmoothing/resin)
+
+
+/datum/action/xeno_action/activable/incendiary_gas
 	name = "Incendiary Gas"
 	desc = "Throws a glob that expands into a cloud of incendiary gas that can be ignited with your other abilities"
 	action_icon_state = "hell_gas"
