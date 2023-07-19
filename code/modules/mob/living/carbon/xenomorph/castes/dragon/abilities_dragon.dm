@@ -262,9 +262,10 @@
 	owner_xeno.AdjustImmobilized(takeoff_time)
 	return TRUE
 
-/datum/action/xeno_action/flight/proc/on_flight_end()
+/datum/action/xeno_action/flight/proc/on_flight_end(mob/source_mob)
 	SIGNAL_HANDLER
 	action_icon_state = initial(action_icon_state)
+	REMOVE_TRAIT(source_mob, TRAIT_NOPLASMAREGEN, "flight")
 
 /datum/action/xeno_action/flight/proc/update_action_icon()
 	if(!flight)
@@ -277,7 +278,6 @@
 		CRASH("Somehow called land() while not even flying, or the pointer to the flight effect was missing")
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	owner_xeno.remove_status_effect(flight)
-	REMOVE_TRAIT(owner_xeno, TRAIT_NOPLASMAREGEN, "flight")
 	flight = null
 
 /datum/action/xeno_action/flight/remove_action(mob/living/L)
