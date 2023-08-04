@@ -21,7 +21,7 @@
 		vis_contents.Remove(wing_effect)
 		QDEL_NULL(wing_effect)
 
-	if(!resting && xeno_caste && !wing_effect)
+	if(!resting && xeno_caste && !wing_effect && plasma_stored > xeno_caste.plasma_max * 0.25)
 		wing_effect = new()
 		update_wing_alpha()
 		vis_contents += wing_effect
@@ -35,5 +35,8 @@
 
 /mob/living/carbon/xenomorph/dragon/proc/update_wing_alpha()
 	SIGNAL_HANDLER
+	// Remove the overlay if we're under 25% plasma
+	if(wing_effect && plasma_stored > xeno_caste.plasma_max * 0.25)
+		update_icons()
 	var/alpha_result = (plasma_stored / xeno_caste.plasma_max) * 255
 	wing_effect.alpha = clamp(round(alpha_result), 0, 255)
