@@ -149,9 +149,9 @@
 	// *** Defense *** //
 	soft_armor = list(MELEE = 15, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 15, BIO = 60, FIRE = 85, ACID = 60)
 
-	// spit_types = list(
-	// 	/datum/ammo/flamethrower/dragon_fire,
-	// )
+	spit_types = list(
+		/datum/ammo/flamethrower/dragon_fire,
+	)
 
 	// *** Abilities *** //
 	actions = list(
