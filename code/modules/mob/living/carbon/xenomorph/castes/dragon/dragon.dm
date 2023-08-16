@@ -16,17 +16,18 @@
 
 /mob/living/carbon/xenomorph/dragon/update_icons(state_change = TRUE)
 	. = ..()
-	if(wing_effect && state_change)
-		UnregisterSignal(src, COMSIG_XENOMORPH_PLASMA_CHANGE)
-		vis_contents.Remove(wing_effect)
-		QDEL_NULL(wing_effect)
+	if(!state_change)
+		return
 
-	if(!resting && xeno_caste && !wing_effect && plasma_stored > xeno_caste.plasma_max * 0.25)
+	if(wing_effect)
+		remove_wing_overlay()
+
+	if(!resting && plasma_stored > xeno_caste.plasma_max * 0.25)
 		wing_effect = new()
 		update_wing_alpha()
 		vis_contents += wing_effect
-		RegisterSignal(src, COMSIG_XENOMORPH_PLASMA_CHANGE, .proc/update_wing_alpha)
 		overlays += emissive_appearance(wing_effect.icon, wing_effect.icon_state)
+		RegisterSignal(src, COMSIG_XENOMORPH_PLASMA_CHANGE, .proc/update_wing_alpha)
 
 /mob/living/carbon/xenomorph/dragon/Destroy()
 	. = ..()
@@ -36,7 +37,15 @@
 /mob/living/carbon/xenomorph/dragon/proc/update_wing_alpha()
 	SIGNAL_HANDLER
 	// Remove the overlay if we're under 25% plasma
-	if(wing_effect && plasma_stored > xeno_caste.plasma_max * 0.25)
-		update_icons()
+	if(plasma_stored < xeno_caste.plasma_max * 0.25)
+		remove_wing_overlay()
+		return
 	var/alpha_result = (plasma_stored / xeno_caste.plasma_max) * 255
 	wing_effect.alpha = clamp(round(alpha_result), 0, 255)
+
+/mob/living/carbon/xenomorph/dragon/proc/remove_wing_overlay()
+	if(!wing_effect)
+		return
+	UnregisterSignal(src, COMSIG_XENOMORPH_PLASMA_CHANGE)
+	vis_contents.Remove(wing_effect)
+	QDEL_NULL(wing_effect)

@@ -77,6 +77,7 @@
 	target.apply_status_effect(STATUS_EFFECT_DRAGONFIRE, 40)
 	add_cooldown()
 
+
 /datum/action/xeno_action/activable/xeno_spit/fireball
 	name = "Spit a fireball"
 	action_icon_state = "dragon_fireball"
@@ -143,6 +144,7 @@
 	newspit.pixel_y = spitter_xeno.pixel_y
 	animate(newspit, pixel_y = 0, time = flying_spit_delay, easing = LINEAR_EASING)
 	newspit.fire_at(target, owner, null, spit_ammo.max_range, spit_ammo.shell_speed)
+
 
 /datum/action/xeno_action/flight
 	name = "Skycall"
@@ -228,10 +230,9 @@
 		fail_activate()
 		return
 	owner_xeno.Immobilize(flight.landing_delay, TRUE)
-	owner_xeno.remove_status_effect(flight)
 	switch(flight.type)
 		if(STATUS_EFFECT_FLIGHT)
-			flight = flight.transition_to_hover()
+			owner_xeno.apply_status_effect(STATUS_EFFECT_HOVER)
 			update_action_icon()
 		if(STATUS_EFFECT_HOVER)
 			// Full cooldown if we're landed on the ground.
@@ -246,13 +247,11 @@
 		status_effect_to_add = STATUS_EFFECT_HOVER
 		var/area/owner_area = get_area(owner)
 		owner_xeno.balloon_alert_to_viewers(owner_area.ceiling ? "burrows through the thin roof!" : "takes flight!")
-		status_effect_to_add = STATUS_EFFECT_HOVER
-		ADD_TRAIT(owner_xeno, TRAIT_NOPLASMAREGEN, "flight")
 
 	else if(is_hovering)
+		status_effect_to_add = STATUS_EFFECT_FLIGHT
 		var/turf/turf = get_turf(owner)
 		turf.balloon_alert_to_viewers("[owner_xeno] begins to ascend to the skies!")
-		flight.transition_to_flight()
 
 	if(!status_effect_to_add)
 		return FALSE
@@ -265,7 +264,7 @@
 /datum/action/xeno_action/flight/proc/on_flight_end(mob/source_mob)
 	SIGNAL_HANDLER
 	action_icon_state = initial(action_icon_state)
-	REMOVE_TRAIT(source_mob, TRAIT_NOPLASMAREGEN, "flight")
+	// REMOVE_TRAIT(source_mob, TRAIT_NOPLASMAREGEN, "flight")
 
 /datum/action/xeno_action/flight/proc/update_action_icon()
 	if(!flight)
@@ -276,6 +275,7 @@
 /datum/action/xeno_action/flight/proc/land()
 	if(!flight)
 		CRASH("Somehow called land() while not even flying, or the pointer to the flight effect was missing")
+
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	owner_xeno.remove_status_effect(flight)
 	flight = null
@@ -284,7 +284,9 @@
 	. = ..()
 	if(flight)
 		land()
+
 	UnregisterSignal(L, COMSIG_XENO_FLIGHT_END)
+
 
 /datum/action/xeno_action/activable/charge/hell_dash
 	name = "Hell Dash"
@@ -327,12 +329,12 @@
 /datum/action/xeno_action/activable/incendiary_gas/use_ability(atom/A)
 	owner.face_atom(A)
 	// todo: figure out a better message
-	owner.balloon_alert_to_viewers("[owner] starts to gather resin in it's mouth!")
+	owner.balloon_alert_to_viewers("[owner] starts to gather flaming resin in it's mouth!")
 	if(!do_after(owner, 3 SECONDS, FALSE, null, BUSY_ICON_HOSTILE))
 		add_cooldown(cooldown_timer * 0.1)
 		return
 	var/obj/projectile/P = new /obj/projectile(get_turf(owner))
-	var/datum/ammo/xeno/boiler_gas/glob = new /datum/ammo/xeno/boiler_gas/incendiary()
+	var/datum/ammo/xeno/boiler_gas/incendiary/glob = new /datum/ammo/xeno/boiler_gas/incendiary()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
 	glob.hive_number = owner_xeno.hivenumber
 	P.generate_bullet(glob)

@@ -257,7 +257,7 @@
 	// Rotate the shadow to match the direction of the dragon
 	if(tracked && oldloc && direction)
 		var/angle = Get_Angle(tracked.loc, oldloc) 
-		animate(src, 0.5 SECONDS, transform = turn(direction, Get_Angle(tracked.loc, oldloc)))
+		animate(src, 0.5 SECONDS, transform = turn(direction, angle))
 
 /obj/effect/dragon_wings
 	icon = 'icons/Xeno/xeno_emmisives.dmi'

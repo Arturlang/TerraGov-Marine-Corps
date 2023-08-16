@@ -3262,6 +3262,8 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	var/mob/living/carbon/carbon_victim = victim
 	set_reagents()
 	var/armor_block = (1 - carbon_victim.get_soft_armor(armor_type, BODY_ZONE_CHEST) * 0.01) //Check the target's armor mod; default to chest
+	if(!length(spit_reagents))
+		return
 	for(var/reagent_id in spit_reagents) //modify by armor
 		spit_reagents[reagent_id] *= armor_block
 
@@ -3372,7 +3374,12 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	damage = 20
 	max_range = 12
 	hit_paralyze_time = 0
-	passed_turf_smoke_type = /obj/effect/particle_effect/smoke/xeno/incendiary
+
+/datum/ammo/xeno/boiler_gas/incendiary/set_smoke()
+	smoke_system = new /datum/effect_system/smoke_spread/xeno/incendiary()
+
+/datum/ammo/xeno/boiler_gas/set_reagents()
+	spit_reagents = list()
 
 /datum/ammo/xeno/hugger
 	name = "hugger ammo"

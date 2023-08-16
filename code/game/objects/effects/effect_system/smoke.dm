@@ -336,17 +336,19 @@
 
 /obj/effect/particle_effect/smoke/xeno/incendiary
 	color = "#72259f"
+	opacity = FALSE
 	smoke_traits = SMOKE_XENO|SMOKE_GASP|SMOKE_COUGH
+	var/igniting = FALSE
 
-/obj/effect/particle_effect/smoke/xeno/incendiary/fire_act()
-	. = ..()
-	// call fire_act on smoke around us
-	for(var/obj/effect/particle_effect/smoke/xeno/incendiary/smoke in orange(1))
-		if(!istype(smoke, src.type) && smoke == src)
+/obj/effect/particle_effect/smoke/xeno/incendiary/flamer_fire_act(burnlevel, burnflags, firesource)
+	igniting = TRUE
+	for(var/obj/effect/particle_effect/smoke/xeno/incendiary/smoke in orange(1, src))
+		if(smoke == src || smoke.igniting)
 			continue
-		smoke.fire_act()
+		smoke.flamer_fire_act()
 	var/obj/flamer_fire/autosmoothing/resin/fire = new(get_turf(src))
 	fire.hivenumber = hive_number
+	qdel(src)
 
 /////////////////////////////////////////////
 // Smoke spreads
@@ -412,7 +414,7 @@
 /datum/effect_system/smoke_spread/xeno/ozelomelyn
 	smoke_type = /obj/effect/particle_effect/smoke/xeno/ozelomelyn
 
-/datum/effect_system/smoke_spread/xeno/indendiary
+/datum/effect_system/smoke_spread/xeno/incendiary
 	smoke_type = /obj/effect/particle_effect/smoke/xeno/incendiary
 
 /////////////////////////////////////////////
