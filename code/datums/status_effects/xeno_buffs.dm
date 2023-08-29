@@ -855,11 +855,11 @@
 		return
 	if(HAS_TRAIT_FROM(owner, TRAIT_NON_FLAMMABLE, "flight"))
 		REMOVE_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
-		REMOVE_TRAIT(owner_xeno, TRAIT_NOPLASMAREGEN, "flight")
-		
+		REMOVE_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
+
 	else
 		ADD_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
-		ADD_TRAIT(owner_xeno, TRAIT_NOPLASMAREGEN, "flight")
+		ADD_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
 
 	owner_xeno.toggle_intangibility("dragon_flight")
 
