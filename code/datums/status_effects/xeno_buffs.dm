@@ -840,14 +840,17 @@
 
 /datum/status_effect/xeno/dragon_flight/proc/land()
 	owner.Immobilize(landing_delay)
+	owner.add_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF, TRUE, multiplicative_slowdown = 0.5)
 	animate(owner, landing_delay, pixel_y = initial(owner.pixel_y), easing = BOUNCE_EASING)
 	addtimer(CALLBACK(GLOBAL_PROC, .proc/playsound, owner, 'sound/effects/woosh_swoosh.ogg', 70, TRUE), landing_delay * 0.5)
 	animate(owner, landing_delay, alpha = initial(owner.alpha))
 	if(shadow) 
 		QDEL_NULL_IN(src, shadow, landing_delay)
+	addtimer(CALLBACK(src, .proc/finish_landing), landing_delay)
 	finish_landing()
 
 /datum/status_effect/xeno/dragon_flight/proc/finish_landing()
+	owner.remove_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF)
 	toggle_flight_properties(TRUE)
 
 /datum/status_effect/xeno/dragon_flight/proc/toggle_flight_properties(override = FALSE)
@@ -856,10 +859,12 @@
 	if(HAS_TRAIT_FROM(owner, TRAIT_NON_FLAMMABLE, "flight"))
 		REMOVE_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
 		REMOVE_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
+		owner_xeno.mouse_opacity = initial(owner_xeno.mouse_opacity)
 
 	else
 		ADD_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
 		ADD_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
+		owner_xeno.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 
 	owner_xeno.toggle_intangibility("dragon_flight")
 
