@@ -479,6 +479,9 @@
 ///from /mob/living/proc/set_lying_angle
 #define COMSIG_LIVING_SET_LYING_ANGLE "living_set_lying_angle"
 #define COMSIG_LIVING_IGNITED "living_ignited" //from /mob/living/proc/IgniteMob() : (fire_stacks)
+#define COMSIG_LIVING_EXTINGUISH "living_extinguish" //from /mob/living/proc/ExtinguishMob()
+#define COMSIG_LIVING_RESIST_EXTINGUISH_MESSAGE "living_resist_extinguish_message" //from mob/living/proc/resist_fire() : (datum/source)
+	#define COMSIG_EXTINGUISH_NO_MESSAGE (1<<0) // Disables the extinguishing to_chat
 
 /// From mob/living/treat_message(): (list/message_args)
 #define COMSIG_LIVING_TREAT_MESSAGE "living_treat_message"

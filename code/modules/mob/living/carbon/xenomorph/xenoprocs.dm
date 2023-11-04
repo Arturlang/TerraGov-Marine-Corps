@@ -568,12 +568,12 @@
 	SSminimaps.add_marker(src, MINIMAP_FLAG_XENO, blip)
 
 // Makes a xeno intagible and invisible. Make sure you use the same arguments to revert the effects.
-/mob/living/carbon/xenomorph/proc/toggle_intangibility(source = "generic_intangibility")
+/mob/living/carbon/xenomorph/proc/toggle_intangibility(source = "generic_intangibility", enable)
 	if(HAS_TRAIT_FROM(src, TRAIT_INTANGIBLE, source))
 		invisibility = initial(invisibility)
 		status_flags = initial(status_flags)
 		resistance_flags = initial(resistance_flags)
-		flags_pass = initial(flags_pass)
+		pass_flags = initial(pass_flags)
 		density = initial(density)
 		REMOVE_TRAIT(src, TRAIT_INTANGIBLE, source)
 	// Don't remove it if the source is invalid and we already have it
@@ -585,7 +585,7 @@
 		invisibility = INVISIBILITY_MAXIMUM
 		status_flags = INCORPOREAL
 		resistance_flags = BANISH_IMMUNE
-		flags_pass = PASSTABLE|PASSMOB|PASSXENO
+		pass_flags = PASS_LOW_STRUCTURE|PASSABLE|PASS_FIRE
 		density = FALSE
 	
 	update_wounds()

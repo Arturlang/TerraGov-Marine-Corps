@@ -1,7 +1,7 @@
 /mob/living/carbon/xenomorph/dragon
 	caste_base_type = /mob/living/carbon/xenomorph/dragon
 	name = "Dragon"
-	icon = 'icons/Xeno/2x2_Xenos.dmi'
+	icon = 'icons/Xeno/castes/dragon.dmi'
 	icon_state = "Dragon Walking"
 	// desc = "todo"
 	health = 450
