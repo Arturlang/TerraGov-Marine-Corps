@@ -160,7 +160,7 @@
 		/area/shuttle/dropship,
 		/area/shuttle
 	)
-	var/datum/status_effect/xeno/dragon_flight/flight
+	var/datum/status_effect/xeno/flight/flight
 
 /datum/action/xeno_action/flight/give_action(mob/living/L)
 	. = ..()
@@ -211,7 +211,7 @@
 	if(!ascend_to_flight_or_hover())
 		return
 
-	var/takeoff_time = flight.flap_delay * flight.takeoff_flaps
+	var/takeoff_time = flight.total_takeoff_time()
 	owner_xeno.Immobilize(takeoff_time, TRUE)
 	if(!do_after(owner_xeno, takeoff_time))
 		if(takeoff_time)
@@ -257,7 +257,7 @@
 		return FALSE
 
 	flight = owner_xeno.apply_status_effect(status_effect_to_add)
-	var/takeoff_time = initial(flight.takeoff_flaps) * initial(flight.flap_delay) + 1 SECONDS
+	var/takeoff_time = flight.total_takeoff_time()
 	owner_xeno.AdjustImmobilized(takeoff_time)
 	return TRUE
 

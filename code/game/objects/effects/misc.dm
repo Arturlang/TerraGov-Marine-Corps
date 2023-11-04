@@ -257,8 +257,18 @@
 	if(tracked && oldloc && direction)
 		var/angle = Get_Angle(tracked.loc, oldloc)
 		var/matrix/M = matrix()
-		M.Turn(angle)
-		animate(src, 0.5 SECONDS, transform = M)
+		var turnTime = 0.5 SECONDS
+		// byond will do a very funky flip if it's exactly 180 to turn
+		if(angle >= 180)
+			angle = angle * 0.5
+			turnTime = turnTime * 0.5
+			addtimer(CALLBACK(src, .proc/Rotate, M, angle, turnTime), turnTime)
+			return
+		Rotate(M, angle, turnTime)
+
+/obj/effect/following_shadow/dragon/proc/Rotate(matrix/M, angle, turnTime)
+	M.Turn(angle)
+	animate(src, turnTime, transform = M)
 
 /obj/effect/dragon_wings
 	icon = 'icons/effects/64x64.dmi'

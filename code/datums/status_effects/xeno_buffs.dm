@@ -771,13 +771,15 @@
 	desc = "You have accelerated natural healing."
 	icon_state = "healing_infusion"
 
-/datum/status_effect/xeno/dragon_flight
+/datum/status_effect/xeno/flight
 	id = "flight"
 	alert_type = null
 	/// How long it takes to land
 	var/landing_delay = 4 SECONDS
 	/// How long each flap takes
-	var/flap_delay = 2 SECONDS
+	var/flap_duration = 2 SECONDS
+	/// How long the delay between flaps is
+	var/flap_delay = 0.5 SECONDS
 	/// How many flaps in total to take off
 	var/takeoff_flaps = 5
 	/// How high we offest pixel_y in total
@@ -793,29 +795,29 @@
 	/// The actual shadow pointer, automatically deleted when we land or transition
 	var/obj/effect/shadow
 
-/datum/status_effect/xeno/dragon_flight/on_apply()
+/datum/status_effect/xeno/flight/on_apply()
 	SEND_SIGNAL(owner, COMSIG_XENO_FLIGHT_START)
 	. = ..()
-	ADD_TRAIT(owner, TRAIT_HANDS_BLOCKED, "dragon_flight")
+	ADD_TRAIT(owner, TRAIT_HANDS_BLOCKED, "flight")
 	take_off()
-	var/datum/status_effect/xeno/dragon_flight/effect = owner.has_status_effect(transition_type)
+	var/datum/status_effect/xeno/flight/effect = owner.has_status_effect(transition_type)
 	if(effect)
 		effect.do_transition()
 		transition = TRUE
 
-/datum/status_effect/xeno/dragon_flight/on_remove()
+/datum/status_effect/xeno/flight/on_remove()
 	SEND_SIGNAL(owner, COMSIG_XENO_FLIGHT_END)
-	if(HAS_TRAIT_FROM(owner, TRAIT_HANDS_BLOCKED, "dragon_flight"))
+	if(HAS_TRAIT_FROM(owner, TRAIT_INTANGIBLE, "flight"))
 		toggle_flight_properties()
 
 	if(!transition)
 		land()
 
-	REMOVE_TRAIT(owner, TRAIT_HANDS_BLOCKED, "dragon_flight")
+	REMOVE_TRAIT(owner, TRAIT_HANDS_BLOCKED, "flight")
 	owner.layer = initial(owner.layer)
 	. = ..()
 
-/datum/status_effect/xeno/dragon_flight/process()
+/datum/status_effect/xeno/flight/process()
 	. = ..()
 	if(owner_xeno?.plasma_stored <= plasma_to_sustain && owner_xeno.check_state(TRUE))
 		qdel(src)
@@ -823,72 +825,78 @@
 
 	owner_xeno.use_plasma(plasma_to_sustain)
 
-/datum/status_effect/xeno/dragon_flight/proc/take_off()
+/datum/status_effect/xeno/flight/proc/take_off()
 	if(!shadow)
 		create_shadow()
-
+	ADD_TRAIT(TRAIT_SILENT_FOOTSTEPS, "flight")
 	owner.layer = MOB_LAYER + 1
 	flap()
 
-/datum/status_effect/xeno/dragon_flight/proc/flap(current_step = 0)
+/datum/status_effect/xeno/flight/proc/flap(current_step = 0)
 	if(owner.on_fire)
 		land()
 		return
 
 	var/pixel_change = flight_pixel_height / takeoff_flaps
-	playsound(owner, 'sound/effects/woosh_swoosh.ogg', 100, TRUE, 14)
-	addtimer(CALLBACK(src, .proc/disappear, flap_delay * 4), flap_delay * 2)
-	animate(owner, flap_delay, pixel_y = pixel_change, flags = ANIMATION_RELATIVE, easing = BACK_EASING)
+	playsound(owner, 'sound/effects/woosh_swoosh.ogg', 100, TRUE, 14, 0.5)
+	addtimer(CALLBACK(src, .proc/disappear, flap_duration * 4), total_takeoff_time() * 0.5)
+	animate(owner, flap_duration, pixel_y = pixel_change, flags = ANIMATION_RELATIVE, easing = BACK_EASING)
 	if(current_step >= takeoff_flaps)
 		toggle_flight_properties()
 	else
-		addtimer(CALLBACK(src, .proc/flap, current_step + 1), flap_delay)
+		addtimer(CALLBACK(src, .proc/flap, current_step + 1), flap_duration + flap_delay)
 
-/datum/status_effect/xeno/dragon_flight/proc/disappear(time)
+/datum/status_effect/xeno/flight/proc/disappear(time)
 	animate(owner, time, alpha = 0)
+	owner.pixel_y = initial(owner.pixel_y)
 
-/datum/status_effect/xeno/dragon_flight/proc/land()
+/datum/status_effect/xeno/flight/proc/land()
 	owner.Immobilize(landing_delay)
 	owner.add_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF, TRUE, multiplicative_slowdown = 0.5)
+	owner.pixel_y = flight_pixel_height
 	animate(owner, landing_delay, pixel_y = initial(owner.pixel_y), easing = BOUNCE_EASING)
-	addtimer(CALLBACK(GLOBAL_PROC, .proc/playsound, owner, 'sound/effects/woosh_swoosh.ogg', 70, TRUE), landing_delay * 0.5)
+	addtimer(CALLBACK(src, .proc/playsound, owner, 'sound/effects/woosh_swoosh.ogg', 70, TRUE), landing_delay * 0.5)
 	animate(owner, landing_delay, alpha = initial(owner.alpha))
 	if(shadow) 
 		QDEL_NULL_IN(src, shadow, landing_delay)
 	addtimer(CALLBACK(src, .proc/finish_landing), landing_delay)
 	finish_landing()
 
-/datum/status_effect/xeno/dragon_flight/proc/finish_landing()
+/datum/status_effect/xeno/flight/proc/finish_landing()
 	owner.remove_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF)
+	REMOVE_TRAIT_FROM(owner, TRAIT_SILENT_FOOTSTEPS, "flight")
 	toggle_flight_properties(TRUE)
 
-/datum/status_effect/xeno/dragon_flight/proc/toggle_flight_properties(override = FALSE)
+/datum/status_effect/xeno/flight/proc/toggle_flight_properties(override = FALSE)
 	if(!transition && !override)
 		return
-	if(HAS_TRAIT_FROM(owner, TRAIT_NON_FLAMMABLE, "flight"))
+	if(HAS_TRAIT_FROM(owner, TRAIT_INTANGIBLE, "flight"))
 		REMOVE_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
 		REMOVE_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
 		owner_xeno.mouse_opacity = initial(owner_xeno.mouse_opacity)
+		owner_xeno.toggle_intangibility("flight", TRUE)
 
 	else
 		ADD_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
 		ADD_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
 		owner_xeno.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+		owner_xeno.toggle_intangibility("flight", FALSE)
 
-	owner_xeno.toggle_intangibility("dragon_flight")
-
-/datum/status_effect/xeno/dragon_flight/proc/create_shadow()
+/datum/status_effect/xeno/flight/proc/create_shadow()
 	shadow = new shadow_type(get_turf(owner), owner)
 	shadow.alpha = 0
 	shadow.glide_size = owner.glide_size
-	animate(shadow, 10 SECONDS, alpha = 150)
+	animate(shadow, 10 SECONDS, alpha = initial(shadow.alpha))
 
-/datum/status_effect/xeno/dragon_flight/proc/do_transition()
-	QDEL_NULL_IN(src, shadow, (takeoff_flaps * flap_delay) * 0.2)
+/datum/status_effect/xeno/flight/proc/do_transition()
+	QDEL_NULL_IN(src, shadow, (takeoff_flaps * flap_duration) * 0.2)
 	transition = TRUE
 	qdel(src)
 
-/datum/status_effect/xeno/dragon_flight/hover
+/datum/status_effect/xeno/flight/proc/total_takeoff_time()
+	return takeoff_flaps * (flap_duration + flap_delay)
+
+/datum/status_effect/xeno/flight/hover
 	id = "hover"
 	plasma_to_sustain = 1
 	takeoff_flaps = 2
@@ -897,7 +905,7 @@
 	shadow_type = /obj/effect/following_shadow
 	transition_type = STATUS_EFFECT_FLIGHT
 
-/datum/status_effect/xeno/dragon_flight/hover/take_off()
+/datum/status_effect/xeno/flight/hover/take_off()
 	// Ensure we only lower the height when transition from flight to hover, not land and then takeoff again.
 	if(transition)
 		animate(owner, landing_delay * 3, easing = BACK_EASING, pixel_y = flight_pixel_height)
@@ -905,18 +913,18 @@
 
 	. = ..()
 
-/datum/status_effect/xeno/dragon_flight/hover/toggle_flight_properties()
+/datum/status_effect/xeno/flight/hover/toggle_flight_properties()
 	. = ..()
 	DO_FLOATING_ANIM(owner, 2 SECONDS, 4)
 
-/datum/status_effect/xeno/dragon_flight/hover/disappear(time)
+/datum/status_effect/xeno/flight/hover/disappear(time)
 	return
 
-/datum/status_effect/xeno/dragon_flight/hover/land()
+/datum/status_effect/xeno/flight/hover/land()
 	STOP_FLOATING_ANIM(owner)
 	. = ..()
 
-/datum/status_effect/xeno/dragon_flight/hover/finish_landing()
+/datum/status_effect/xeno/flight/hover/finish_landing()
 	return
 
 // ***************************************
