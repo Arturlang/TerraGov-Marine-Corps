@@ -13,9 +13,7 @@ type InputPack = {
   hive_larva_rate: number;
   hive_larva_burrowed: number;
   hive_psy_points: number;
-  hive_silo_collapse: number;
   hive_orphan_collapse: number;
-  hive_silo_max: number;
   hive_orphan_max: number;
   hive_minion_count: number;
   hive_primos: PrimoUpgrades[];
@@ -101,7 +99,7 @@ export const HiveStatus = (_props, context) => {
       theme="xeno"
       title={hive_name + ' Hive Status'}
       resizable
-      width={700}
+      width={800}
       height={800}>
       <Window.Content scrollable>
         <CachedCollapsible
@@ -184,7 +182,9 @@ const BlessingsButton = (_props, context) => {
 
   return (
     <Box className="Section__buttons">
-      <Button onClick={() => act('Blessings', { xeno: user_ref })}>
+      <Button
+        onClick={() => act('Blessings', { xeno: user_ref })}
+        icon={'store'}>
         Blessings
       </Button>
     </Box>
@@ -196,10 +196,8 @@ const GeneralInfo = (_props, context) => {
   const {
     hive_larva_burrowed,
     hive_psy_points,
-    hive_silo_collapse,
     hive_orphan_collapse,
     hive_death_timers,
-    hive_silo_max,
     hive_orphan_max,
   } = data;
 
@@ -238,14 +236,6 @@ const GeneralInfo = (_props, context) => {
           <EvolutionBar />
         </Flex.Item>
         <DeadXenoTimerCountdowns hive_death_timers={hive_death_timers} />
-        <Flex.Item>
-          <XenoCountdownBar
-            time={hive_silo_collapse}
-            max={hive_silo_max}
-            tooltip="Hive must construct a silo!"
-            left_side="Silo Collapse:"
-          />
-        </Flex.Item>
         <Flex.Item>
           <XenoCountdownBar
             time={hive_orphan_collapse}
@@ -714,7 +704,7 @@ const XenoList = (_props, context) => {
   const row_height = '16px';
   const ssd_width = '16px';
   const ssd_mr = '4px';
-  const action_width = '40px';
+  const action_width = '54px';
   const action_mr = '4px';
   const leader_width = '16px';
   const leader_mr = '6px';
@@ -929,7 +919,6 @@ const ActionButtons = (props: ActionButtonProps, context) => {
   const { act } = useBackend<InputPack>(context);
   const observing = props.target_ref === props.watched_xeno;
 
-  let timer: NodeJS.Timeout;
   const overwatch_button = (
     <Button
       fluid
@@ -952,6 +941,20 @@ const ActionButtons = (props: ActionButtonProps, context) => {
         {/* Overwatch */}
         <Flex.Item grow mr="4px">
           {overwatch_button}
+        </Flex.Item>
+        <Flex.Item grow mr="4px">
+          <Button
+            fluid
+            height="16px"
+            fontSize={0.75}
+            tooltip={'Deevolve'}
+            align="center"
+            verticalAlignContent="middle"
+            icon="bolt"
+            onClick={() => {
+              act('Deevolve', { xeno: props.target_ref });
+            }}
+          />
         </Flex.Item>
         {/* Transfer plasma */}
         <Flex.Item grow>

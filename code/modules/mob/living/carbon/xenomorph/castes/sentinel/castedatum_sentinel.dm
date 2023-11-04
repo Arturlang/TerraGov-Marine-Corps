@@ -7,6 +7,9 @@
 	tier = XENO_TIER_ONE
 	upgrade = XENO_UPGRADE_BASETYPE
 
+	gib_anim = "gibbed-a-small-corpse"
+	gib_flick = "gibbed-a-small"
+
 	// *** Melee Attacks *** //
 	melee_damage = 14
 
@@ -28,7 +31,8 @@
 
 	// *** Flags *** //
 	caste_flags = CASTE_EVOLUTION_ALLOWED
-	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_VENT_CRAWL|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER|CASTE_CAN_RIDE_CRUSHER
+	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER|CASTE_CAN_RIDE_CRUSHER
+	caste_traits = list(TRAIT_CAN_VENTCRAWL)
 
 	// *** Defense *** //
 	soft_armor = list(MELEE = 15, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 0, BIO = 15, FIRE = 15, ACID = 15)

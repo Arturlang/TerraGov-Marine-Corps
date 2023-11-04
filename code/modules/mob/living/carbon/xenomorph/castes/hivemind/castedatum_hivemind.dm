@@ -24,6 +24,7 @@
 	// *** Flags *** //
 	caste_flags = CASTE_INNATE_PLASMA_REGEN|CASTE_FIRE_IMMUNE|CASTE_IS_BUILDER|CASTE_DO_NOT_ALERT_LOW_LIFE
 	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_BE_GIVEN_PLASMA
+	caste_traits = null
 
 	// *** Defense *** //
 	soft_armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, FIRE = 0, ACID = 0)
@@ -45,6 +46,7 @@
 		/datum/action/xeno_action/watch_xeno/hivemind,
 		/datum/action/xeno_action/change_form,
 		/datum/action/xeno_action/return_to_core,
+		/datum/action/xeno_action/teleport,
 		/datum/action/xeno_action/rally_hive/hivemind,
 		/datum/action/xeno_action/activable/command_minions,
 		/datum/action/xeno_action/activable/plant_weeds/ranged,

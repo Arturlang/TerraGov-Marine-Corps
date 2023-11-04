@@ -36,7 +36,8 @@
 
 	// *** Flags *** //
 	caste_flags = CASTE_EVOLUTION_ALLOWED
-	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_VENT_CRAWL|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER
+	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER
+	caste_traits = list(TRAIT_CAN_VENTCRAWL)
 
 	// *** Defense *** //
 	soft_armor = list(MELEE = 40, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 0, BIO = 10, FIRE = 15, ACID = 10)
@@ -56,6 +57,7 @@
 		/datum/action/xeno_action/xeno_resting,
 		/datum/action/xeno_action/watch_xeno,
 		/datum/action/xeno_action/activable/psydrain,
+		/datum/action/xeno_action/activable/silence,
 		/datum/action/xeno_action/activable/pounce/hunter,
 		/datum/action/xeno_action/stealth,
 		/datum/action/xeno_action/activable/hunter_mark,
@@ -180,6 +182,7 @@
 		/datum/action/xeno_action/xeno_resting,
 		/datum/action/xeno_action/watch_xeno,
 		/datum/action/xeno_action/activable/psydrain,
+		/datum/action/xeno_action/activable/silence,
 		/datum/action/xeno_action/activable/pounce/hunter,
 		/datum/action/xeno_action/stealth,
 		/datum/action/xeno_action/stealth/disguise,

@@ -1,3 +1,41 @@
+
+///Default override for echo
+/sound
+	echo = list(
+		0, // Direct
+		0, // DirectHF
+		-10000, // Room, -10000 means no low frequency sound reverb
+		-10000, // RoomHF, -10000 means no high frequency sound reverb
+		0, // Obstruction
+		0, // ObstructionLFRatio
+		0, // Occlusion
+		0.25, // OcclusionLFRatio
+		1.5, // OcclusionRoomRatio
+		1.0, // OcclusionDirectRatio
+		0, // Exclusion
+		1.0, // ExclusionLFRatio
+		0, // OutsideVolumeHF
+		0, // DopplerFactor
+		0, // RolloffFactor
+		0, // RoomRolloffFactor
+		1.0, // AirAbsorptionFactor
+		0, // Flags (1 = Auto Direct, 2 = Auto Room, 4 = Auto RoomHF)
+	)
+	// todo pls port tg style enviromental sound
+	//environment = SOUND_ENVIRONMENT_NONE //Default to none so sounds without overrides dont get reverb
+	environment = list(
+		100.0, 0.5, \
+		-250, -1000, 0, \
+		1.5, 0.75, 1.0, \
+		-2000, 0.01, \
+		500, 0.015, \
+		0.25, 0.1, \
+		0.25, 0.1, \
+		-10.0, \
+		5000.0, 250.0, \
+		1.0, 10.0, 10.0, 255, \
+	)
+
 /**Proc used to play a sound.
  * Arguments:
  * * source: what played the sound.
@@ -33,29 +71,16 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 			continue
 		M.playsound_local(turf_source, soundin, vol, vary, frequency, falloff, is_global, channel, S)
 
+//todo rename S to sound_to_use
 /mob/proc/playsound_local(turf/turf_source, soundin, vol, vary, frequency, falloff, is_global, channel = 0, sound/S, distance_multiplier = 1)
 	if(!client)
 		return FALSE
 
-	soundin = get_sfx(soundin)
-
 	if(!S)
-		S = sound(soundin)
+		S = sound(get_sfx(soundin))
 	S.wait = 0 //No queue
 	S.channel = channel || SSsounds.random_available_channel()
 	S.volume = vol
-	S.environment = list(
-		100.0, 0.5, \
-		-250, -1000, 0, \
-		1.5, 0.75, 1.0, \
-		-2000, 0.01, \
-		500, 0.015, \
-		0.25, 0.1, \
-		0.25, 0.1, \
-		-10.0, \
-		5000.0, 250.0, \
-		1.0, 10.0, 10.0, 255, \
-	)
 
 	if(vary)
 		S.frequency = frequency ? frequency : GET_RANDOM_FREQ
@@ -80,21 +105,13 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 		S.y = 1
 		S.falloff = falloff ? falloff : FALLOFF_SOUNDS * max(round(S.volume * 0.05), 1)
 
-		S.echo = list(
-			0, 0, \
-			-250, -1000, \
-			0, 1.0, \
-			-1000, 0.25, 1.5, 1.0, \
-			-1000, 1.0, \
-			0, 1.0, 1.0, 1.0, 1.0, 7)
-
 	if(!is_global)
 		S.environment = 2
 
 	SEND_SOUND(src, S)
 
 
-/mob/living/playsound_local(turf/turf_source, soundin, vol, vary, frequency, falloff, is_global, channel = 0, sound/S)
+/mob/living/playsound_local(turf/turf_source, soundin, vol, vary, frequency, falloff, is_global, channel = 0, sound/S, distance_multiplier = 1)
 	if(ear_deaf > 0)
 		return FALSE
 	return ..()
@@ -129,7 +146,7 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 	for(var/mob/living/carbon/human/H AS in GLOB.humans_by_zlevel["[z]"])
 		if(H.client)
 			SEND_SOUND(H, soundin)
-	for(var/mob/dead/observer/O AS in GLOB.observers_by_zlevel["[z]"])
+	for(var/mob/dead/observer/O AS in SSmobs.dead_players_by_zlevel[z])
 		if(O.client)
 			SEND_SOUND(O, soundin)
 
@@ -139,7 +156,7 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 	for(var/mob/living/carbon/xenomorph/X AS in GLOB.hive_datums[hive_type].xenos_by_zlevel["[z]"])
 		if(X.client)
 			SEND_SOUND(X, soundin)
-	for(var/mob/dead/observer/O AS in GLOB.observers_by_zlevel["[z]"])
+	for(var/mob/dead/observer/O AS in SSmobs.dead_players_by_zlevel[z])
 		if(O.client)
 			SEND_SOUND(O, soundin)
 
@@ -185,6 +202,12 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 				'sound/machines/terminal_button07.ogg', 'sound/machines/terminal_button08.ogg')
 		if("vending")
 			S = pick('sound/machines/vending_cans.ogg', 'sound/machines/vending_drop.ogg')
+		if("incendiary_explosion")
+			S = pick('sound/effects/incendiary_explosion_1.ogg', 'sound/effects/incendiary_explosion_2.ogg', 'sound/effects/incendiary_explosion_3.ogg')
+		if("molotov")
+			S = pick('sound/effects/molotov_detonate_1.ogg', 'sound/effects/molotov_detonate_2.ogg', 'sound/effects/molotov_detonate_3.ogg')
+		if("flashbang")
+			S = pick('sound/effects/flashbang_explode_1.ogg', 'sound/effects/flashbang_explode_2.ogg')
 		// Weapons/bullets
 		if("ballistic_hit")
 			S = pick('sound/bullets/bullet_impact1.ogg','sound/bullets/bullet_impact2.ogg','sound/bullets/bullet_impact3.ogg')
@@ -212,8 +235,10 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 			S = pick('sound/weapons/guns/fire/smartgun1.ogg', 'sound/weapons/guns/fire/smartgun2.ogg', 'sound/weapons/guns/fire/smartgun3.ogg')
 		if("gun_flamethrower")
 			S = pick('sound/weapons/guns/fire/flamethrower1.ogg', 'sound/weapons/guns/fire/flamethrower2.ogg', 'sound/weapons/guns/fire/flamethrower3.ogg')
-		if("gun_t12")
-			S = pick('sound/weapons/guns/fire/autorifle-1.ogg','sound/weapons/guns/fire/autorifle-2.ogg','sound/weapons/guns/fire/autorifle-3.ogg')
+		if("gun_ar12")
+			S = pick('sound/weapons/guns/fire/tgmc/kinetic/gun_ar12_1.ogg','sound/weapons/guns/fire/tgmc/kinetic/gun_ar12_2.ogg','sound/weapons/guns/fire/tgmc/kinetic/gun_ar12_3.ogg')
+		if("gun_fb12") // idk why i called it "fb-12", ah too late now
+			S = pick('sound/weapons/guns/fire/tgmc/kinetic/gun_fb12_1.ogg','sound/weapons/guns/fire/tgmc/kinetic/gun_fb12_2.ogg','sound/weapons/guns/fire/tgmc/kinetic/gun_fb12_3.ogg')
 		if("shotgun_som")
 			S = pick('sound/weapons/guns/fire/v51_1.ogg','sound/weapons/guns/fire/v51_2.ogg','sound/weapons/guns/fire/v51_3.ogg','sound/weapons/guns/fire/v51_4.ogg')
 		if("gun_pulse")
@@ -222,6 +247,12 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 			S = pick('sound/weapons/guns/fire/rpg_1.ogg', 'sound/weapons/guns/fire/rpg_2.ogg', 'sound/weapons/guns/fire/rpg_3.ogg')
 		if("ac_fire")
 			S = pick('sound/weapons/guns/fire/autocannon_1.ogg', 'sound/weapons/guns/fire/autocannon_2.ogg', 'sound/weapons/guns/fire/autocannon_3.ogg')
+		if("svd_fire")
+			S = pick('sound/weapons/guns/fire/svd1.ogg', 'sound/weapons/guns/fire/svd2.ogg', 'sound/weapons/guns/fire/svd3.ogg')
+		if("fal_fire")
+			S = pick('sound/weapons/guns/fire/fal1.ogg', 'sound/weapons/guns/fire/fal2.ogg')
+		if("mp38_fire")
+			S = pick('sound/weapons/guns/fire/mp38_1.ogg', 'sound/weapons/guns/fire/mp38_2.ogg')
 
 		// Xeno
 		if("acid_hit")
@@ -304,10 +335,12 @@ A good representation is: 'byond applies a volume reduction to the sound every X
 			S = pick("sound/voice/human_male_preburst1.ogg", 'sound/voice/human_male_preburst2.ogg', 'sound/voice/human_male_preburst3.ogg', 'sound/voice/human_male_preburst4.ogg', 'sound/voice/human_male_preburst5.ogg', 'sound/voice/human_male_preburst6.ogg', 'sound/voice/human_male_preburst7.ogg', 'sound/voice/human_male_preburst8.ogg', 'sound/voice/human_male_preburst9.ogg', 'sound/voice/human_male_preburst10.ogg')
 		if("female_preburst")
 			S = pick("sound/voice/human_female_preburst1.ogg", 'sound/voice/human_female_preburst2.ogg', 'sound/voice/human_female_preburst3.ogg')
+		if("jump")
+			S = pick('sound/effects/bounce_1.ogg','sound/effects/bounce_2.ogg','sound/effects/bounce_3.ogg','sound/effects/bounce_4.ogg')
 
 		//robot race
 		if("robot_scream")
-			S =  pick('sound/voice/robot/robot_scream1.ogg', 'sound/voice/robot/robot_scream2.ogg', 'sound/voice/robot/robot_scream2.ogg')
+			S = pick('sound/voice/robot/robot_scream1.ogg', 'sound/voice/robot/robot_scream2.ogg', 'sound/voice/robot/robot_scream2.ogg')
 		if("robot_pain")
 			S = pick('sound/voice/robot/robot_pain1.ogg', 'sound/voice/robot/robot_pain2.ogg', 'sound/voice/robot/robot_pain3.ogg')
 		if("robot_warcry")

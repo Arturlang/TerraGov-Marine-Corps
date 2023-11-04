@@ -2,7 +2,7 @@
 	caste_name = "Queen"
 	display_name = "Queen"
 	caste_type_path = /mob/living/carbon/xenomorph/queen
-	caste_desc = "The biggest and baddest xeno. The Queen controls the hive and plants eggs"
+	caste_desc = "The biggest and baddest xeno. The Queen controls the hive."
 	job_type = /datum/job/xenomorph/queen
 
 	tier = XENO_TIER_FOUR
@@ -26,12 +26,14 @@
 	upgrade_threshold = TIER_THREE_YOUNG_THRESHOLD
 	evolve_min_xenos = 8
 	maximum_active_caste = 1
+	death_evolution_delay = 5 MINUTES
 
 	// *** Flags *** //
 	caste_flags = CASTE_IS_INTELLIGENT|CASTE_IS_BUILDER|CASTE_STAGGER_RESISTANT|CASTE_LEADER_TYPE|CASTE_INSTANT_EVOLUTION
 	can_hold_eggs = CAN_HOLD_TWO_HANDS
 	can_flags = CASTE_CAN_HOLD_FACEHUGGERS|CASTE_CAN_HOLD_JELLY|CASTE_CAN_CORRUPT_GENERATOR|CASTE_CAN_BE_GIVEN_PLASMA
-	death_evolution_delay = 5 MINUTES
+	caste_traits = null
+
 	// *** Defense *** //
 	soft_armor = list(MELEE = 50, BULLET = 50, LASER = 50, ENERGY = 50, BOMB = 30, BIO = 45, FIRE = 45, ACID = 45)
 
@@ -57,6 +59,7 @@
 		/datum/action/xeno_action/place_acidwell,
 		/datum/action/xeno_action/call_of_the_burrowed,
 		/datum/action/xeno_action/activable/screech,
+		/datum/action/xeno_action/bulwark,
 		/datum/action/xeno_action/activable/corrosive_acid/strong,
 		/datum/action/xeno_action/activable/xeno_spit,
 		/datum/action/xeno_action/activable/psychic_cure/queen_give_heal,
@@ -70,11 +73,8 @@
 		/datum/action/xeno_action/set_xeno_lead,
 		/datum/action/xeno_action/activable/queen_give_plasma,
 		/datum/action/xeno_action/hive_message,
-		/datum/action/xeno_action/deevolve,
 		/datum/action/xeno_action/rally_hive,
-		/datum/action/xeno_action/rally_minion,
 		/datum/action/xeno_action/activable/command_minions,
-		/datum/action/xeno_action/set_agressivity,
 	)
 
 
@@ -82,7 +82,7 @@
 	upgrade = XENO_UPGRADE_ZERO
 
 /datum/xeno_caste/queen/mature
-	caste_desc = "The biggest and baddest xeno. The Queen controls the hive and plants eggs."
+	caste_desc = "The biggest and baddest xeno. The Queen controls the hive."
 
 	upgrade = XENO_UPGRADE_ONE
 
@@ -217,6 +217,7 @@
 		/datum/action/xeno_action/place_acidwell,
 		/datum/action/xeno_action/call_of_the_burrowed,
 		/datum/action/xeno_action/activable/screech,
+		/datum/action/xeno_action/bulwark,
 		/datum/action/xeno_action/activable/corrosive_acid/strong,
 		/datum/action/xeno_action/activable/xeno_spit,
 		/datum/action/xeno_action/activable/psychic_cure/queen_give_heal,
@@ -230,10 +231,7 @@
 		/datum/action/xeno_action/set_xeno_lead,
 		/datum/action/xeno_action/activable/queen_give_plasma,
 		/datum/action/xeno_action/hive_message,
-		/datum/action/xeno_action/deevolve,
 		/datum/action/xeno_action/rally_hive,
-		/datum/action/xeno_action/rally_minion,
 		/datum/action/xeno_action/activable/command_minions,
-		/datum/action/xeno_action/set_agressivity,
 		/datum/action/xeno_action/ready_charge/queen_charge,
 	)

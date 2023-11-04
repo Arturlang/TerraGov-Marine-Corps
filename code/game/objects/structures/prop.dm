@@ -51,6 +51,9 @@
 		if(EXPLODE_LIGHT)
 			if (prob(25))
 				set_broken()
+		if(EXPLODE_WEAK)
+			if (prob(15))
+				set_broken()
 
 
 /obj/machinery/prop/mainship/computer/proc/set_broken()
@@ -64,7 +67,6 @@
 	if(machine_stat & NOPOWER)
 		icon_state = initial(icon_state)
 		icon_state += "0"
-
 
 /obj/machinery/prop/mainship/computer/aiupload
 	name = "\improper AI upload console"
@@ -122,7 +124,7 @@
 	resistance_flags = RESIST_ALL
 
 
-/obj/structure/prop/mainship/deadai/Initialize()
+/obj/structure/prop/mainship/deadai/Initialize(mapload)
 	. = ..()
 	icon_state = pick(
 		"ai_dead",
@@ -147,6 +149,50 @@
 	icon_state = "weapon_recharger"
 	density = FALSE
 
+//RND Props
+/obj/machinery/prop/r_n_d/protolathe
+	name = "Protolathe"
+	icon = 'icons/obj/machines/research.dmi'
+	desc = "Protolathe, used to be used to print tools and such."
+	icon_state = "protolathe"
+
+/obj/machinery/prop/computer/rdconsole
+	name = "R&D Console"
+	icon = 'icons/obj/machines/computer.dmi'
+	desc = "A research console."
+	icon_state = "rdcomp"
+
+/obj/machinery/prop/r_n_d/server
+	name = "R&D Server"
+	icon = 'icons/obj/machines/research.dmi'
+	desc = "A research server"
+	icon_state = "server"
+
+/obj/machinery/prop/computer/rdservercontrol
+	name = "R&D Server Controller"
+	icon = 'icons/obj/machines/computer.dmi'
+	desc = "Oversees all research"
+	icon_state = "rdcomp"
+
+/obj/machinery/prop/computer/communications
+	name = "communications console"
+	desc = "This can be used for various important functions."
+	icon_state = "comm"
+	icon = 'icons/obj/machines/computer.dmi'
+
+/obj/machinery/prop/computer/crew
+	name = "Crew monitoring computer"
+	desc = "Used to monitor active health sensors built into most of the crew's uniforms."
+	icon_state = "crew"
+	icon = 'icons/obj/machines/computer.dmi'
+
+/obj/machinery/prop/r_n_d/server/alt
+	name = "Alternate R&D Server"
+	icon = 'icons/obj/machines/research.dmi'
+	desc = "A research server"
+	icon_state = "server_alt"
+//End RND props
+
 //Nonpower using props
 
 /obj/structure/prop/mainship
@@ -155,6 +201,14 @@
 	density = TRUE
 	anchored = TRUE
 	coverage = 15
+
+/obj/machinery/prop/autolathe
+	name = "\improper autolathe"
+	desc = "It used to produce items using metal and glass."
+	icon_state = "autolathe"
+	coverage = 30
+	density = TRUE
+	anchored = TRUE
 
 /obj/structure/prop/mainship/minigun_crate
 	name = "30mm ammo crate"
@@ -222,7 +276,7 @@
 	bound_width = 64
 	bound_height = 32
 	resistance_flags = UNACIDABLE
-	flags_pass = NONE
+	allow_pass_flags = NONE
 	var/list/fallen_list
 
 /obj/structure/prop/mainship/ship_memorial/attackby(obj/item/I, mob/user)
@@ -242,12 +296,12 @@
 	. = ..()
 	if((isobserver(user) || ishuman(user)) && fallen_list)
 		var/faltext = ""
-		for(var/i = 1 to fallen_list.len)
-			if(i != fallen_list.len)
+		for(var/i = 1 to length(fallen_list))
+			if(i != length(fallen_list))
 				faltext += "[fallen_list[i]], "
 			else
 				faltext += fallen_list[i]
-		. += "[span_notice("To our fallen soldiers:")] <b>[faltext]</b>."
+		. += "[span_notice("To our fallen marines:")] <b>[faltext]</b>."
 
 
 /obj/structure/prop/mainship/particle_cannon
@@ -279,7 +333,7 @@
 /obj/structure/prop/mainship/name_stencil/C
 	icon_state = "TGMC4"
 
-/obj/structure/prop/mainship/name_stencil/Initialize()
+/obj/structure/prop/mainship/name_stencil/Initialize(mapload)
 	. = ..()
 	name = SSmapping.configs[SHIP_MAP].map_name
 
@@ -483,6 +537,7 @@
 /obj/structure/prop/mainship/research/circuit_imprinter
 	name = "Circuit Imprinter"
 	icon_state = "circuit_imprinter"
+	desc = "Manufactures circuit boards for the construction of machines."
 
 /obj/structure/prop/mainship/research/mechafab
 	icon_state = "mechfab1"
@@ -491,6 +546,7 @@
 
 /obj/structure/prop/mainship/research/destructive_analyzer
 	name = "Destructive Analyzer"
+	desc = "Learn science by destroying things!"
 	icon_state = "d_analyzer"
 
 /obj/structure/prop/mainship/research/tdoppler
@@ -572,6 +628,9 @@
 	icon_state = "officerprop"
 	resistance_flags = RESIST_ALL
 	density = TRUE
+
+/obj/structure/prop/mainship/prop_so/som
+	icon_state = "officersomprop"
 
 /obj/structure/prop/mainship/prop_tech
 	name = "Technician"
@@ -726,7 +785,7 @@
 	icon_state = "pump_map-2"
 
 /obj/structure/prop/mainship/pipeprop/pump/on
-	icon_state =  "pump_on"
+	icon_state = "pump_on"
 	layer = GAS_PUMP_LAYER
 
 /obj/structure/prop/mainship/halfbuilt_mech
@@ -741,7 +800,7 @@
 		MECH_GREY_L_ARM = MECH_ASSAULT,
 	)
 
-/obj/structure/prop/mainship/halfbuilt_mech/Initialize()
+/obj/structure/prop/mainship/halfbuilt_mech/Initialize(mapload)
 	. = ..()
 	var/default_colors = MECH_GREY_PRIMARY_DEFAULT + MECH_GREY_SECONDARY_DEFAULT
 	var/default_visor = MECH_GREY_VISOR_DEFAULT
@@ -872,7 +931,7 @@
 	desc = "A storage device for AIs. Patent pending."
 	icon_state = "aicard"
 
-/obj/item/prop/aicard/Initialize()
+/obj/item/prop/aicard/Initialize(mapload)
 	. = ..()
 	if(prob(50))
 		icon_state = "aicard-404"
@@ -889,7 +948,7 @@
 	icon = 'icons/obj/items/card.dmi'
 	icon_state = "dogtag"
 
-/obj/item/prop/dogtag/random/Initialize()
+/obj/item/prop/dogtag/random/Initialize(mapload)
 	. = ..()
 	name = GLOB.namepool[/datum/namepool].get_random_name(pick(MALE, FEMALE))
 
@@ -951,7 +1010,8 @@
 	icon_state = "surplus_armor-broken"
 
 ///BROKEN VEHICLE PROPS
-
+/obj/structure/prop/vehicle
+	layer = TANK_BARREL_LAYER
 /obj/structure/prop/vehicle/van
 	name = "van"
 	desc = "An old van, seems to be broken down."
@@ -962,9 +1022,8 @@
 	bound_height = 32
 	bound_width = 64
 	resistance_flags = RESIST_ALL
-	layer = ABOVE_MOB_LAYER
 
-/obj/structure/prop/vehicle/van/Initialize()
+/obj/structure/prop/vehicle/van/Initialize(mapload)
 	. = ..()
 	if(dir & (NORTH|SOUTH))
 		bound_height = 64
@@ -984,7 +1043,6 @@
 	bound_height = 32
 	bound_width = 64
 	resistance_flags = RESIST_ALL
-	layer = ABOVE_MOB_LAYER
 
 /obj/structure/prop/vehicle/truck/destructible
 	max_integrity = 150
@@ -996,6 +1054,7 @@
 /obj/structure/prop/vehicle/truck/truckcargo/destructible
 	max_integrity = 200
 	resistance_flags = XENO_DAMAGEABLE
+
 /obj/structure/prop/vehicle/crane
 	name = "crane"
 	desc = "An old crane, seems to be broken down."
@@ -1006,7 +1065,6 @@
 	bound_height = 64
 	bound_width = 64
 	resistance_flags = RESIST_ALL
-	layer = ABOVE_MOB_LAYER
 
 /obj/structure/prop/vehicle/crane/destructible
 	max_integrity = 300
@@ -1029,7 +1087,6 @@
 	bound_height = 32
 	bound_width = 64
 	resistance_flags = RESIST_ALL
-	layer = ABOVE_MOB_LAYER
 
 /obj/structure/prop/vehicle/crawler/destructible
 	max_integrity = 200
@@ -1061,7 +1118,6 @@
 	bound_height = 128
 	bound_width = 128
 	resistance_flags = RESIST_ALL
-	layer = ABOVE_MOB_LAYER
 
 /obj/structure/prop/vehicle/tank/north
 	icon = 'icons/Marine/tank_propns.dmi'
@@ -1131,7 +1187,6 @@
 
 /obj/structure/prop/vehicle/tank/east/decoration/armor
 	icon_state = "caustic_armor"
-	layer = ABOVE_MOB_LAYER
 
 /obj/structure/prop/vehicle/tank/east/decoration/armor/causticarmor
 	icon_state = "caustic_armor"
@@ -1232,7 +1287,6 @@
 
 /obj/structure/prop/vehicle/tank/north/barrel
 	icon_state = "ltb_cannon_0"
-	layer = ABOVE_MOB_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 
 /obj/structure/prop/vehicle/tank/north/barrel/broken
@@ -1260,7 +1314,6 @@
 
 /obj/structure/prop/vehicle/tank/north/decoration/armor
 	icon_state = "caustic_armor"
-	layer = ABOVE_MOB_LAYER
 
 /obj/structure/prop/vehicle/tank/north/decoration/armor/causticarmor
 	icon_state = "caustic_armor"
@@ -1356,9 +1409,8 @@
 	bound_height = 128
 	bound_width = 128
 	resistance_flags = RESIST_ALL
-	layer = ABOVE_MOB_LAYER
 
-/obj/structure/prop/vehicle/apc/Initialize()
+/obj/structure/prop/vehicle/apc/Initialize(mapload)
 	. = ..()
 	if(dir == EAST || dir == WEST)
 		bound_height = 64
@@ -1680,7 +1732,7 @@
 	///var to control vendor appearance, can be vendor_broken, vendor_working or vendor_blank
 	var/vendorstate = VENDOR_BROKEN
 
-/obj/structure/prop/tgbrokenvendor/Initialize()
+/obj/structure/prop/tgbrokenvendor/Initialize(mapload)
 	. = ..()
 	vendorstate = pick(VENDOR_BROKEN, VENDOR_BLANK)
 	if(vendorstate == VENDOR_BROKEN)
@@ -1941,6 +1993,12 @@
 	name = "Port Quarter Solar Control"
 	desc = "A controller for solar panel arrays."
 	icon_state = "solar"
+
+/obj/structure/prop/mainship/errorprop
+	name = "ERROR"
+	desc = "If you see this object in game you should ahelp, something has broken."
+	icon = 'icons/Marine/mainship_props.dmi'
+	icon_state = "error"
 
 #undef VENDOR_BROKEN
 #undef VENDOR_BLANK

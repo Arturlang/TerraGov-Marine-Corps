@@ -34,7 +34,7 @@
 	conscious_see_in_dark = 20
 
 	// *** Flags *** //
-	caste_flags = CASTE_ACID_BLOOD
+	caste_flags = CASTE_ACID_BLOOD|CASTE_EVOLUTION_ALLOWED
 	can_flags =CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER
 
 	// *** Defense *** //
@@ -51,7 +51,6 @@
 	max_ammo = 4
 	bomb_strength = 1 //Multiplier to the effectiveness of the boiler glob.
 	bomb_delay = 32 SECONDS
-	ammo_multiplier = 1.5 SECONDS
 
 	acid_spray_duration = 10 SECONDS
 	acid_spray_damage = 16
@@ -70,8 +69,6 @@
 		/datum/action/xeno_action/toggle_bomb,
 		/datum/action/xeno_action/activable/spray_acid/line/boiler,
 	)
-
-	water_slowdown = -0.5
 
 /datum/xeno_caste/boiler/young
 	upgrade_name = "Young"

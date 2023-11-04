@@ -25,12 +25,18 @@
 	evolution_threshold = 180
 	upgrade_threshold = TIER_TWO_YOUNG_THRESHOLD
 
-	evolves_to = list(/mob/living/carbon/xenomorph/crusher)
-	deevolves_to = /mob/living/carbon/xenomorph/runner
+	evolves_to = list(
+		/mob/living/carbon/xenomorph/crusher,
+	)
+	deevolves_to = list(
+		/mob/living/carbon/xenomorph/runner,
+		/mob/living/carbon/xenomorph/baneling,
+	)
 
 	// *** Flags *** //
 	caste_flags = CASTE_EVOLUTION_ALLOWED
 	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER
+	caste_traits = null
 
 	// *** Defense *** //
 	soft_armor = list(MELEE = 25, BULLET = 35, LASER = 25, ENERGY = 25, BOMB = 0, BIO = 25, FIRE = 35, ACID = 25)

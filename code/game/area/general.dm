@@ -34,7 +34,7 @@
 //All shuttles show now be under shuttle since we have smooth-wall code.
 
 /area/shuttle //DO NOT TURN THE dynamic_lighting STUFF ON FOR SHUTTLES. IT BREAKS THINGS.
-	requires_power = 0
+	requires_power = FALSE
 	outside = FALSE
 	flags_area = OB_CAS_IMMUNE
 	minimap_color = MINIMAP_AREA_LZ
@@ -217,6 +217,14 @@
 	requires_power = 0
 	static_lighting = FALSE
 	base_lighting_alpha = 255
+
+/area/testroom
+	requires_power = FALSE
+	// Mobs should be able to see inside the testroom
+	static_lighting = FALSE
+	base_lighting_alpha = 255
+	name = "Test Room"
+	icon_state = "test_room"
 
 
 /area/syndicate_mothership
@@ -724,11 +732,10 @@
 	icon_state = "Holodeck"
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-
+	always_unpowered = TRUE
 
 /area/holodeck/alphadeck
 	name = "Abandoned Holodeck Alpha"
-
 
 /area/holodeck/source_plating
 	name = "Abandoned Holodeck - Off"
@@ -833,6 +840,8 @@
 	ambience = list('sound/ambience/ambimalf.ogg')
 
 //MedBay
+/area/medical
+	minimap_color = MINIMAP_AREA_MEDBAY
 
 /area/medical/medbay
 	name = "Abandoned Medbay"
@@ -956,6 +965,8 @@
 	icon_state = "exam_room"
 
 //Security
+/area/security
+	minimap_color = MINIMAP_AREA_SEC
 
 /area/security/main
 	name = "Abandoned Security Office"
@@ -1079,6 +1090,8 @@
 	icon_state = "garden"
 
 //rnd (Research and Development
+/area/rnd
+	minimap_color = MINIMAP_AREA_RESEARCH
 
 /area/rnd/research
 	name = "Abandoned Research and Development"

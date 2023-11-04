@@ -8,6 +8,9 @@
 	tier = XENO_TIER_ONE
 	upgrade = XENO_UPGRADE_BASETYPE
 
+	gib_anim = "gibbed-a-small-corpse"
+	gib_flick = "gibbed-a-small"
+
 	// *** Melee Attacks *** //
 	melee_damage = 16
 
@@ -38,7 +41,8 @@
 	// *** Flags *** //
 	caste_flags = CASTE_EVOLUTION_ALLOWED|CASTE_IS_BUILDER
 	can_hold_eggs = CAN_HOLD_TWO_HANDS
-	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_HOLD_FACEHUGGERS|CASTE_CAN_VENT_CRAWL|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER|CASTE_CAN_HOLD_JELLY|CASTE_CAN_RIDE_CRUSHER
+	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_HOLD_FACEHUGGERS|CASTE_CAN_BE_GIVEN_PLASMA|CASTE_CAN_BE_LEADER|CASTE_CAN_HOLD_JELLY|CASTE_CAN_RIDE_CRUSHER
+	caste_traits = list(TRAIT_CAN_VENTCRAWL)
 
 	// *** Defense *** //
 	soft_armor = list(MELEE = 10, BULLET = 10, LASER = 10, ENERGY = 10, BOMB = 0, BIO = 0, FIRE = 10, ACID = 0)
@@ -66,6 +70,7 @@
 		/datum/action/xeno_action/pheromones/emit_recovery,
 		/datum/action/xeno_action/pheromones/emit_warding,
 		/datum/action/xeno_action/pheromones/emit_frenzy,
+		/datum/action/xeno_action/activable/recycle,
 	)
 
 /datum/xeno_caste/drone/young
@@ -108,7 +113,7 @@
 	melee_damage = 18
 
 	// *** Speed *** //
-	speed = -1.0
+	speed = -1
 
 	// *** Plasma *** //
 	plasma_max = 900
@@ -200,4 +205,5 @@
 		/datum/action/xeno_action/pheromones/emit_recovery,
 		/datum/action/xeno_action/pheromones/emit_warding,
 		/datum/action/xeno_action/pheromones/emit_frenzy,
+		/datum/action/xeno_action/activable/recycle,
 	)

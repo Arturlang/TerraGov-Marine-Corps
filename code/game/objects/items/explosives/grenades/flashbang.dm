@@ -3,7 +3,8 @@
 	desc = "A grenade sometimes used by police, civilian or military, to stun targets with a flash, then a bang. May cause hearing loss, and induce feelings of overwhelming rage in victims."
 	icon_state = "flashbang2"
 	item_state = "flashbang2"
-	arm_sound = 'sound/weapons/armbombpin.ogg'
+	hud_state = "flashbang"
+	arm_sound = 'sound/weapons/armbombpin_2.ogg'
 	///This is a cluster weapon, or part of one
 	var/banglet = FALSE
 	///The range where the maximum effects are applied
@@ -16,7 +17,7 @@
 	var/mp_only = TRUE
 
 /obj/item/explosive/grenade/flashbang/attack_self(mob/user)
-	if(mp_only && (user.skills.getRating("police") < SKILL_POLICE_MP))
+	if(mp_only && (user.skills.getRating(SKILL_POLICE) < SKILL_POLICE_MP))
 		to_chat(user, span_warning("You don't seem to know how to use [src]..."))
 		return
 	..()
@@ -24,7 +25,7 @@
 
 /obj/item/explosive/grenade/flashbang/prime()
 	var/turf/target_turf = get_turf(src)
-	playsound(target_turf, 'sound/effects/bang.ogg', 50, 1)
+	playsound(target_turf, "flashbang", 65)
 	for(var/mob/living/carbon/victim in hearers(max_range, target_turf))
 		if(!HAS_TRAIT(victim, TRAIT_FLASHBANGIMMUNE))
 			bang(target_turf, victim)
@@ -58,9 +59,7 @@
 ///The effects applied to all mobs in range
 /obj/item/explosive/grenade/flashbang/proc/base_effect(turf/T , mob/living/carbon/M, ear_safety)
 	if(M.flash_act())
-		M.Stun(40)
-		M.Paralyze(20 SECONDS)
-
+		M.apply_effects(stun = 4 SECONDS, paralyze = 2 SECONDS)
 	if(M.ear_damage >= 15)
 		to_chat(M, span_warning("Your ears start to ring badly!"))
 		if(!banglet)
@@ -74,11 +73,9 @@
 ///The effects applied to mobs in the inner_range
 /obj/item/explosive/grenade/flashbang/proc/inner_effect(turf/T , mob/living/carbon/M, ear_safety)
 	if(ear_safety > 0)
-		M.Stun(40)
-		M.Paralyze(20)
+		M.apply_effects(stun = 4 SECONDS, paralyze = 2 SECONDS)
 	else
-		M.Stun(20 SECONDS)
-		M.Paralyze(60)
+		M.apply_effects(stun = 20 SECONDS, paralyze = 6 SECONDS)
 		if((prob(14) || (M == src.loc && prob(70))))
 			M.adjust_ear_damage(rand(1, 10),15)
 		else
@@ -87,13 +84,13 @@
 ///The effects applied to mobs in the outer_range
 /obj/item/explosive/grenade/flashbang/proc/outer_effect(turf/T , mob/living/carbon/M, ear_safety)
 	if(!ear_safety)
-		M.Stun(16 SECONDS)
+		M.apply_effect(16 SECONDS, STUN)
 		M.adjust_ear_damage(rand(0, 3),8)
 
 ///The effects applied to mobs outside of outer_range
 /obj/item/explosive/grenade/flashbang/proc/max_range_effect(turf/T , mob/living/carbon/M, ear_safety)
 	if(!ear_safety)
-		M.Stun(80)
+		M.apply_effect(8 SECONDS, STUN)
 		M.adjust_ear_damage(rand(0, 1),6)
 
 
@@ -124,7 +121,7 @@
 	name = "clusterbang segment"
 	icon_state = "clusterbang_segment"
 
-/obj/item/explosive/grenade/flashbang/clusterbang/segment/Initialize() //Segments should never exist except part of the clusterbang, since these immediately 'do their thing' and asplode
+/obj/item/explosive/grenade/flashbang/clusterbang/segment/Initialize(mapload) //Segments should never exist except part of the clusterbang, since these immediately 'do their thing' and asplode
 	. = ..()
 	playsound(loc, 'sound/weapons/armbomb.ogg', 25, TRUE, 6)
 	icon_state = "clusterbang_segment_active"
@@ -133,7 +130,7 @@
 	var/stepdist = rand(1,4)//How far to step
 	var/temploc = loc//Saves the current location to know where to step away from
 	walk_away(src,temploc,stepdist)//I must go, my people need me
-	addtimer(CALLBACK(src, .proc/prime), rand(1.5,6) SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(prime)), rand(1.5,6) SECONDS)
 
 /obj/item/explosive/grenade/flashbang/clusterbang/segment/prime()
 	var/clusters = rand(4,8)
@@ -147,7 +144,7 @@
 
 	qdel(src)
 
-/obj/item/explosive/grenade/flashbang/cluster/Initialize()//Same concept as the segments, so that all of the parts don't become reliant on the clusterbang
+/obj/item/explosive/grenade/flashbang/cluster/Initialize(mapload)//Same concept as the segments, so that all of the parts don't become reliant on the clusterbang
 	. = ..()
 	playsound(loc, 'sound/weapons/armbomb.ogg', 25, TRUE, 6)
 	icon_state = "flashbang_active"
@@ -156,7 +153,7 @@
 	var/stepdist = rand(1,3)
 	var/temploc = loc
 	walk_away(src,temploc,stepdist)
-	addtimer(CALLBACK(src, .proc/prime), rand(1.5,6) SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(prime)), rand(1.5,6) SECONDS)
 
 
 //Slows and staggers instead of hardstunning, balanced for HvH
@@ -165,7 +162,6 @@
 	desc = "A grenade designed to disorientate the senses of anyone caught in the blast radius with a blinding flash of light and viciously loud noise. Repeated use can cause deafness."
 	icon_state = "flashbang2"
 	item_state = "flashbang2"
-	arm_sound = 'sound/weapons/armbombpin.ogg'
 	inner_range = 3
 	det_time = 2 SECONDS
 	mp_only = FALSE
@@ -185,10 +181,10 @@
 		M.blur_eyes(7)
 
 	if(ear_safety > 0)
-		M.adjust_stagger(3)
+		M.adjust_stagger(3 SECONDS)
 		M.add_slowdown(3)
 	else
-		M.adjust_stagger(6)
+		M.adjust_stagger(6 SECONDS)
 		M.add_slowdown(6)
 		if((prob(14) || (M == src.loc && prob(70))))
 			M.adjust_ear_damage(rand(1, 10),15)
@@ -200,7 +196,7 @@
 		M.blur_eyes(6)
 
 	if(!ear_safety)
-		M.adjust_stagger(4)
+		M.adjust_stagger(4 SECONDS)
 		M.add_slowdown(4)
 		M.adjust_ear_damage(rand(0, 3),8)
 
@@ -209,6 +205,6 @@
 		M.blur_eyes(4)
 
 	if(!ear_safety)
-		M.adjust_stagger(2)
+		M.adjust_stagger(2 SECONDS)
 		M.add_slowdown(2)
 		M.adjust_ear_damage(rand(0, 1),6)
