@@ -261,8 +261,7 @@
 		// byond will do a very funky flip if it's exactly 180 to turn
 		if(angle >= 180)
 			angle = angle * 0.5
-			turnTime = turnTime * 0.5
-			addtimer(CALLBACK(src, .proc/Rotate, M, angle, turnTime), turnTime)
+			// addtimer(CALLBACK(src, .proc/Rotate, M, angle, turnTime), turnTime)
 			return
 		Rotate(M, angle, turnTime)
 

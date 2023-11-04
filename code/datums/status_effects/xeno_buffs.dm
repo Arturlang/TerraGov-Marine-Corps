@@ -828,7 +828,7 @@
 /datum/status_effect/xeno/flight/proc/take_off()
 	if(!shadow)
 		create_shadow()
-	ADD_TRAIT(TRAIT_SILENT_FOOTSTEPS, "flight")
+	ADD_TRAIT(owner, TRAIT_SILENT_FOOTSTEPS, "flight")
 	owner.layer = MOB_LAYER + 1
 	flap()
 
@@ -864,7 +864,7 @@
 
 /datum/status_effect/xeno/flight/proc/finish_landing()
 	owner.remove_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF)
-	REMOVE_TRAIT_FROM(owner, TRAIT_SILENT_FOOTSTEPS, "flight")
+	REMOVE_TRAIT(owner, TRAIT_SILENT_FOOTSTEPS, "flight")
 	toggle_flight_properties(TRUE)
 
 /datum/status_effect/xeno/flight/proc/toggle_flight_properties(override = FALSE)
