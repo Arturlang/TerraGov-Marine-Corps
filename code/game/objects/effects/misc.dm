@@ -219,11 +219,10 @@
 
 // Shadow that follows whatever's provided in arguments
 /obj/effect/following_shadow
-	icon = 'icons/Xeno/shadow.dmi'
+	icon = 'icons/effects/64x64.dmi'
 	icon_state = "flying_shadow"
-	alpha = 200
+	alpha = 150
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	// The sprite is bigger than a single
 	pixel_x = -16
 	var/following
 	var/datum/movement_detector/tracker
@@ -248,7 +247,7 @@
 	abstract_move(tracked.loc)
 
 /obj/effect/following_shadow/dragon
-	icon = 'icons/Xeno/dragon_shadow.dmi'
+	icon = 'icons/effects/160x160.dmi'
 	pixel_x = -64
 	pixel_y = -64
 
@@ -262,7 +261,7 @@
 		animate(src, 0.5 SECONDS, transform = M)
 
 /obj/effect/dragon_wings
-	icon = 'icons/Xeno/xeno_emmisives.dmi'
+	icon = 'icons/effects/64x64.dmi'
 	icon_state = "dragon_wings"
 	vis_flags = VIS_INHERIT_ID | VIS_INHERIT_DIR
 
