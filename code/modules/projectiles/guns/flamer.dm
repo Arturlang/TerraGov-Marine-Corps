@@ -638,10 +638,12 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 	. = ..()
 	if(debug_maptext)
 		map_text = new(loc)
+		// DEBUG bonk me if you see this
 		map_text.maptext = "[icon_state]"
 
 /obj/flamer_fire/autosmoothing/resin/updateicon()
 	. = ..()
+	// DEBUG bonk me if you see this
 	if(debug_maptext)
 		map_text.maptext = "[icon_state]"
 
