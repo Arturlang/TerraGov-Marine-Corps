@@ -4199,8 +4199,7 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	fire_color = "purple"
 	// A not so hot, but longer lasting flame
 	burnlevel = 10
-	// burntime = 30
-	burntime = 999
+	burntime = 50
 	incendiary_strength = 0
 	fire_type = /obj/flamer_fire/autosmoothing/resin
 	var/added_spit_delay = 0
@@ -4213,7 +4212,6 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 		var/mob/living/carbon/human/human = M
 		human.apply_status_effect(STATUS_EFFECT_DRAGONFIRE, 10)
 
-
 /datum/ammo/flamethrower/dragon_fire/flying
 	ignite_range = 1
 	damage = 20
@@ -4223,6 +4221,7 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 		if(isliving(thing))
 			continue
 		thing.fire_act()
+
 /datum/ammo/water
 	name = "water"
 	icon_state = "pulse1"

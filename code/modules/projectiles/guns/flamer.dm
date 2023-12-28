@@ -458,7 +458,7 @@
 		old_fire.set_fire(new_fire_level, new_burn_level, f_color, fire_stacks, fire_damage, burn_flags, fire_type)
 		return
 
-	new /obj/flamer_fire(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage)
+	new fire_type(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
 
 /turf/open/floor/plating/ground/snow/ignite(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0)
 	if(slayer > 0)
@@ -548,8 +548,8 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 		qdel(src)
 
 ///Sets the fire object to the correct colour and fire values, and applies the initial effects to any mob on the turf
-/obj/flamer_fire/proc/set_fire(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, burn_flags, fire_type = /obj/flamer_fire)
-	if(fire_type != type)
+/obj/flamer_fire/proc/set_fire(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, burn_flags, fire_type)
+	if(fire_type && fire_type != type)
 		qdel(src)
 		new fire_type(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
 	else 
@@ -560,7 +560,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 			GLOB.flamer_particles[flame_color] = new /particles/flamer_fire(flame_color)
 
 		particles = GLOB.flamer_particles[flame_color]
-		icon_state = "[flame_color]_2"
+		// icon_state = "[flame_color]_2"
 
 		if(fire_lvl)
 			firelevel = fire_lvl
@@ -626,7 +626,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 
 // Variant of flamer fire without fire amount stages, but has smoothing
 /obj/flamer_fire/autosmoothing
-	mouse_opacity = MOUSE_OPACITY_OPAQUE
+	mouse_opacity = MOUSE_OPACITY_ICON
 	base_icon_state = "fire"
 	icon_state = "fire-0"
 	color = COLOR_ORANGE
@@ -646,7 +646,8 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 	// How much percentage of the fire lifetime is left
 	var/fire_percentage = firelevel / initial(firelevel)
 	// Gets more seethrough as it's about to go out
-	animate(src, alpha = clamp(255 * fire_percentage + 40, 0, 255), time = 0.5 SECONDS)
+	var/fire_opacity = clamp(255 * fire_percentage + 40, 0, 255)
+	animate(src, alpha = fire_opacity, time = 0.5 SECONDS)
 
 /obj/flamer_fire/autosmoothing/resin
 	burnflags = BURN_HUMANS|BURN_ENVIRONMENT
@@ -658,14 +659,14 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 	var/debug_maptext = TRUE
 
 /obj/flamer_fire/autosmoothing/resin/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
-	. = ..()
 	if(debug_maptext)
 		map_text = new(loc)
 		map_text.maptext = "[icon_state]"
+	. = ..()
 
 /obj/flamer_fire/autosmoothing/resin/updateicon()
 	. = ..()
-	if(debug_maptext)
+	if(map_text)
 		map_text.maptext = "[icon_state]"
 
 /obj/flamer_fire/autosmoothing/resin/Destroy()

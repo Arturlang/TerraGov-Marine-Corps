@@ -256,7 +256,7 @@
 	if(tracked && oldloc && direction)
 		var/angle = Get_Angle(tracked.loc, oldloc)
 		var/matrix/M = matrix()
-		var turnTime = 0.5 SECONDS
+		var/turnTime = 0.5 SECONDS
 		// byond will do a very funky flip if it's exactly 180 to turn
 		if(angle >= 180)
 			angle = angle * 0.5

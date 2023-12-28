@@ -484,13 +484,21 @@
 
 
 // TODO: Turn actual fire into status effects?
-/datum/status_effect/dragon_fire
+/datum/status_effect/stacking/dragonfire
 	id = "dragon_fire"
 	alert_type = /atom/movable/screen/alert/status_effect/fire
+	duration = 20 SECONDS
+	stacks = 1
+	max_stacks = 30
+	consumed_on_threshold = FALSE
 	var/mob/living/carbon/human/person
 	var/mutable_appearance/fire_effect
 
-/datum/status_effect/dragon_fire/on_apply()
+/datum/status_effect/stacking/dragonfire/on_creation(mob/living/new_owner, set_duration)
+	duration = set_duration
+	. = ..()
+
+/datum/status_effect/stacking/dragonfire/on_apply()
 	. = ..()
 	if(!ishuman(owner))
 		return FALSE
@@ -508,17 +516,17 @@
 	RegisterSignal(person, COMSIG_LIVING_EXTINGUISH, .proc/extinguish)
 	RegisterSignal(person, COMSIG_LIVING_IGNITE_ATTEMPT, .proc/override_fire)
 
-/datum/status_effect/dragon_fire/tick()
+/datum/status_effect/stacking/dragonfire/tick()
 	// There's a lot of stuff that affects fire_stacks, this way we get to keep that instead of those effects simply not doing anything
 	// Consuming all the fire stacks will make it impossible for normal fire to stick around
 	set_duration(person.fire_stacks + duration)
 	person.fire_stacks = 0
 	person.take_overall_damage(5, BURN, FIRE)
 
-/datum/status_effect/dragon_fire/proc/set_duration(amount)
-	duration = clamp(amount, 0, 40)
+/datum/status_effect/stacking/dragonfire/proc/set_duration(amount)
+	duration = clamp(world.time + amount, 0, 40)
 
-/datum/status_effect/dragon_fire/on_remove()
+/datum/status_effect/stacking/dragonfire/on_remove()
 	person.remove_overlay(FIRE_LAYER)
 	person.balloon_alert(person, "The last of the viscous material has stopped burning")
 	UnregisterSignal(person, COMSIG_LIVING_RESIST_EXTINGUISH_MESSAGE)
@@ -528,16 +536,16 @@
 	person = null
 	. = ..()
 
-/datum/status_effect/dragon_fire/proc/override_fire()
+/datum/status_effect/stacking/dragonfire/proc/override_fire()
 	SIGNAL_HANDLER
 	set_duration(duration + 5)
 	return COMSIG_IGNITE_CANCEL
 
-/datum/status_effect/dragon_fire/proc/extinguish()
+/datum/status_effect/stacking/dragonfire/proc/extinguish()
 	SIGNAL_HANDLER
 	set_duration(-5)
 
-/datum/status_effect/dragon_fire/proc/resist_fire()
+/datum/status_effect/stacking/dragonfire/proc/resist_fire()
 	SIGNAL_HANDLER
 	if(!isliving(owner))
 		return
@@ -545,7 +553,7 @@
 	var/mob/living/L = owner
 	L.resist_fire()
 
-/datum/status_effect/dragon_fire/proc/disable_extinguish_message()
+/datum/status_effect/stacking/dragonfire/proc/disable_extinguish_message()
 	SIGNAL_HANDLER
 	return COMSIG_EXTINGUISH_NO_MESSAGE
 

@@ -774,6 +774,8 @@
 /datum/status_effect/xeno/flight
 	id = "flight"
 	alert_type = null
+	/// Traits to apply on gaining and remove on losing of the status effect
+	var/traits = list(TRAIT_HANDS_BLOCKED, TRAIT_NOPLASMAREGEN, TRAIT_SILENT_FOOTSTEPS, TRAIT_NON_FLAMMABLE, TRAIT_NOPLASMAREGEN)
 	/// How long it takes to land
 	var/landing_delay = 4 SECONDS
 	/// How long each flap takes
@@ -798,8 +800,11 @@
 /datum/status_effect/xeno/flight/on_apply()
 	SEND_SIGNAL(owner, COMSIG_XENO_FLIGHT_START)
 	. = ..()
-	ADD_TRAIT(owner, TRAIT_HANDS_BLOCKED, "flight")
+	for(var/trait in traits)
+		ADD_TRAIT(owner, trait, "flight_status_effect")
 	take_off()
+	if(!transition)
+		return
 	var/datum/status_effect/xeno/flight/effect = owner.has_status_effect(transition_type)
 	if(effect)
 		effect.do_transition()
@@ -812,8 +817,8 @@
 
 	if(!transition)
 		land()
-
-	REMOVE_TRAIT(owner, TRAIT_HANDS_BLOCKED, "flight")
+	for(var/trait in traits)
+		REMOVE_TRAIT(owner, trait, "flight_status_effect")
 	owner.layer = initial(owner.layer)
 	. = ..()
 
@@ -828,7 +833,7 @@
 /datum/status_effect/xeno/flight/proc/take_off()
 	if(!shadow)
 		create_shadow()
-	ADD_TRAIT(owner, TRAIT_SILENT_FOOTSTEPS, "flight")
+	owner.add_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF, TRUE, multiplicative_slowdown = 0.5)
 	owner.layer = MOB_LAYER + 1
 	flap()
 
@@ -839,10 +844,12 @@
 
 	var/pixel_change = flight_pixel_height / takeoff_flaps
 	playsound(owner, 'sound/effects/woosh_swoosh.ogg', 100, TRUE, 14, 0.5)
-	addtimer(CALLBACK(src, .proc/disappear, flap_duration * 4), total_takeoff_time() * 0.5)
+	addtimer(CALLBACK(src, .proc/disappear, flap_duration * takeoff_flaps), total_takeoff_time() * 0.5)
 	animate(owner, flap_duration, pixel_y = pixel_change, flags = ANIMATION_RELATIVE, easing = BACK_EASING)
 	if(current_step >= takeoff_flaps)
+		// We're as high as can be, finish up
 		toggle_flight_properties()
+		owner.remove_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF)
 	else
 		addtimer(CALLBACK(src, .proc/flap, current_step + 1), flap_duration + flap_delay)
 
@@ -852,7 +859,6 @@
 
 /datum/status_effect/xeno/flight/proc/land()
 	owner.Immobilize(landing_delay)
-	owner.add_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF, TRUE, multiplicative_slowdown = 0.5)
 	owner.pixel_y = flight_pixel_height
 	animate(owner, landing_delay, pixel_y = initial(owner.pixel_y), easing = BOUNCE_EASING)
 	addtimer(CALLBACK(src, .proc/playsound, owner, 'sound/effects/woosh_swoosh.ogg', 70, TRUE), landing_delay * 0.5)
@@ -863,22 +869,16 @@
 	finish_landing()
 
 /datum/status_effect/xeno/flight/proc/finish_landing()
-	owner.remove_movespeed_modifier(MOVESPEED_ID_DRAGON_TAKEOFF)
-	REMOVE_TRAIT(owner, TRAIT_SILENT_FOOTSTEPS, "flight")
 	toggle_flight_properties(TRUE)
 
 /datum/status_effect/xeno/flight/proc/toggle_flight_properties(override = FALSE)
 	if(!transition && !override)
 		return
 	if(HAS_TRAIT_FROM(owner, TRAIT_INTANGIBLE, "flight"))
-		REMOVE_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
-		REMOVE_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
 		owner_xeno.mouse_opacity = initial(owner_xeno.mouse_opacity)
 		owner_xeno.toggle_intangibility("flight", TRUE)
 
 	else
-		ADD_TRAIT(owner, TRAIT_NON_FLAMMABLE, "flight")
-		ADD_TRAIT(owner, TRAIT_NOPLASMAREGEN, "flight")
 		owner_xeno.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 		owner_xeno.toggle_intangibility("flight", FALSE)
 
@@ -914,7 +914,6 @@
 	. = ..()
 
 /datum/status_effect/xeno/flight/hover/toggle_flight_properties()
-	. = ..()
 	DO_FLOATING_ANIM(owner, 2 SECONDS, 4)
 
 /datum/status_effect/xeno/flight/hover/disappear(time)

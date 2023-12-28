@@ -8,7 +8,7 @@
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_TAIL_STAB
 	)
 	ability_cost = 100
-	cooldown_timer = 7 SECONDS
+	cooldown_duration = 7 SECONDS
 	var/tail_stab_range = 2
 	var/tail_stab_delay = 1.5 SECONDS
 
@@ -91,6 +91,9 @@
 	var/flying_spit_type = /datum/ammo/flamethrower/dragon_fire/flying
 	var/obj/effect/firey_cloud_animation/flying_spit_target_effect
 
+/datum/action/ability/activable/xeno/xeno_spit/fireball/update_button_icon()
+	return
+
 /datum/action/ability/activable/xeno/xeno_spit/fireball/alternate_fire_at(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
 	var/datum/ammo/flamethrower/dragon_fire/dragon_spit = newspit
 	if(istype(dragon_spit))
@@ -153,7 +156,7 @@
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_FLIGHT
 	)
-	cooldown_timer = 2 MINUTES
+	cooldown_duration = 2 MINUTES
 	use_state_flags = ABILITY_IGNORE_HAND_BLOCKED
 	var/list/blacklisted_areas = list(
 		/area/shuttle/dropship,
@@ -190,9 +193,10 @@
 			owner.balloon_alert(owner, "you can't fly while on fire!")
 		return FALSE
 	// Have to have atleast 50% plasma to fly
-	if(xeno_owner?.xeno_caste?.plasma_max * 0.5 >= xeno_owner?.plasma_stored)
+	var/plasma_required = xeno_owner?.xeno_caste?.plasma_max * 0.5
+	if(plasma_required >= xeno_owner?.plasma_stored)
 		if(!silent)
-			owner.balloon_alert(owner, "you need to have atleast 50% plasma to fly!")
+			owner.balloon_alert(owner, "you need to have atleast [plasma_required] plasma to fly!")
 		return FALSE
 
 /datum/action/ability/xeno/flight/action_activate()
@@ -211,10 +215,7 @@
 		return
 
 	var/takeoff_time = flight.total_takeoff_time()
-	owner_xeno.Immobilize(takeoff_time, TRUE)
 	if(!do_after(owner_xeno, takeoff_time))
-		if(takeoff_time)
-			owner_xeno.AdjustImmobilized(-takeoff_time)
 		add_cooldown(1 MINUTES)
 		alternate_action_activate(TRUE)
 		return fail_activate()
@@ -228,7 +229,6 @@
 			owner_xeno.balloon_alert(owner_xeno, "you're not flying!")
 		fail_activate()
 		return
-	owner_xeno.Immobilize(flight.landing_delay, TRUE)
 	switch(flight.type)
 		if(STATUS_EFFECT_FLIGHT)
 			owner_xeno.apply_status_effect(STATUS_EFFECT_HOVER)
@@ -240,7 +240,7 @@
 
 /datum/action/ability/xeno/flight/proc/ascend_to_flight_or_hover()
 	var/mob/living/carbon/xenomorph/owner_xeno = owner
-	var/is_hovering = flight?.type == STATUS_EFFECT_HOVER		
+	var/is_hovering = flight?.type == STATUS_EFFECT_HOVER
 	var/status_effect_to_add
 	if(!flight)
 		status_effect_to_add = STATUS_EFFECT_HOVER
@@ -256,14 +256,11 @@
 		return FALSE
 
 	flight = owner_xeno.apply_status_effect(status_effect_to_add)
-	var/takeoff_time = flight.total_takeoff_time()
-	owner_xeno.AdjustImmobilized(takeoff_time)
 	return TRUE
 
 /datum/action/ability/xeno/flight/proc/on_flight_end(mob/source_mob)
 	SIGNAL_HANDLER
 	action_icon_state = initial(action_icon_state)
-	// REMOVE_TRAIT(source_mob, TRAIT_NOPLASMAREGEN, "flight")
 
 /datum/action/ability/xeno/flight/proc/update_action_icon()
 	if(!flight)
@@ -294,7 +291,7 @@
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_HELL_DASH
 	)
-	cooldown_timer = 40 SECONDS
+	cooldown_duration = 40 SECONDS
 	ability_cost = 200
 	charge_distance = DRAGON_CHARGE_RANGE
 	charge_speed =  DRAGON_CHARGE_SPEED
@@ -322,7 +319,7 @@
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_INCENDIARY_GAS
 	)
-	cooldown_timer = 2 MINUTES
+	cooldown_duration = 2 MINUTES
 	ability_cost = 500
 
 /datum/action/ability/activable/xeno/incendiary_gas/use_ability(atom/A)
