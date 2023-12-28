@@ -25,6 +25,7 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 	icon = 'icons/Marine/marine-weapons.dmi'
 	icon_state = null
 	item_state = null
+
 	///Determines the amount of pixels to move the icon state for the overlay. in the x direction
 	var/pixel_shift_x = 16
 	///Determines the amount of pixels to move the icon state for the overlay. in the y direction
@@ -807,7 +808,7 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 		return FALSE
 	if(CHECK_BITFIELD(master_gun.flags_item, IS_DEPLOYED) && user.dir != master_gun.loc.dir)
 		user.setDir(master_gun.loc.dir)
-	if(!do_after(user, scope_delay, TRUE, src, BUSY_ICON_BAR))
+	if(!do_after(user, scope_delay, NONE, src, BUSY_ICON_BAR))
 		return FALSE
 	zoom(user)
 	update_icon()
@@ -1045,6 +1046,21 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 	pixel_shift_x = 32
 	pixel_shift_y = 13
 
+/obj/item/attachable/stock/clf_heavyrifle
+	name = "PTR-41/1785 body"
+	desc = "A stock for a PTR-41/1785 A-MR."
+	icon = 'icons/Marine/clf_heavyrifle.dmi'
+	icon_state = "ptrs_stock"
+	pixel_shift_x = 15
+	pixel_shift_y = 0
+
+/obj/item/attachable/stock/dpm
+	name = "\improper DP-27 stock"
+	desc = "A irremovable DP stock."
+	icon_state = "dpstock"
+	pixel_shift_x = 32
+	pixel_shift_y = 13
+
 /obj/item/attachable/stock/t39stock
 	name = "\improper SH-39 stock"
 	desc = "A specialized stock for the SH-39."
@@ -1203,7 +1219,7 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 
 /obj/item/attachable/lace/activate(mob/living/user, turn_off)
 	if(lace_deployed)
-		DISABLE_BITFIELD(master_gun.flags_item, NODROP)
+		REMOVE_TRAIT(master_gun, TRAIT_NODROP, PISTOL_LACE_TRAIT)
 		to_chat(user, span_notice("You feel the [src] loosen around your wrist!"))
 		playsound(user, 'sound/weapons/fistunclamp.ogg', 25, 1, 7)
 		icon_state = "lace"
@@ -1212,10 +1228,10 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 	else
 		if(user.do_actions)
 			return
-		if(!do_after(user, 0.5 SECONDS, TRUE, src, BUSY_ICON_BAR))
+		if(!do_after(user, 0.5 SECONDS, NONE, src, BUSY_ICON_BAR))
 			return
 		to_chat(user, span_notice("You deploy the [src]."))
-		ENABLE_BITFIELD(master_gun.flags_item, NODROP)
+		ADD_TRAIT(master_gun, TRAIT_NODROP, PISTOL_LACE_TRAIT)
 		to_chat(user, span_warning("You feel the [src] shut around your wrist!"))
 		playsound(user, 'sound/weapons/fistclamp.ogg', 25, 1, 7)
 		icon_state = "lace-on"
@@ -1293,7 +1309,7 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 	update_icon()
 
 /obj/item/attachable/foldable/activate(mob/living/user, turn_off)
-	if(user && deploy_time && !do_after(user, deploy_time, TRUE, src, BUSY_ICON_BAR))
+	if(user && deploy_time && !do_after(user, deploy_time, NONE, src, BUSY_ICON_BAR))
 		return FALSE
 
 	folded = !folded
@@ -1356,6 +1372,7 @@ inaccurate. Don't worry if force is ever negative, it won't runtime.
 	accuracy_mod = 0.2
 	recoil_mod = -2
 	scatter_mod = -8
+	aim_speed_mod = 0.05
 
 /obj/item/attachable/foldable/icc_machinepistol
 	name = "\improper PL-38 machinepistol stock"

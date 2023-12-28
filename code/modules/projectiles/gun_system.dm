@@ -1,3 +1,19 @@
+/particles/firing_smoke
+	icon = 'icons/effects/96x96.dmi'
+	icon_state = "smoke5"
+	width = 500
+	height = 500
+	count = 5
+	spawning = 15
+	lifespan = 0.5 SECONDS
+	fade = 2.4 SECONDS
+	grow = 0.12
+	drift = generator(GEN_CIRCLE, 8, 8)
+	scale = 0.1
+	spin = generator(GEN_NUM, -20, 20)
+	velocity = list(50, 0)
+	friction = generator(GEN_NUM, 0.3, 0.6)
+
 /obj/item/weapon/gun
 	name = "Guns"
 	desc = "Its a gun. It's pretty terrible, though."
@@ -392,6 +408,7 @@
 
 /obj/item/weapon/gun/Destroy()
 	active_attachable = null
+	gunattachment = null
 	QDEL_NULL(muzzle_flash)
 	QDEL_NULL(chamber_items)
 	QDEL_NULL(in_chamber)
@@ -462,17 +479,17 @@
 	if(master_gun?.master_gun) //Prevent gunception
 		return
 	gun_user = user
+	SEND_SIGNAL(gun_user, COMSIG_GUN_USER_SET, src)
+	if(flags_gun_features & GUN_AMMO_COUNTER)
+		gun_user.hud_used.add_ammo_hud(src, get_ammo_list(), get_display_ammo_count())
+	if(master_gun)
+		return
 	setup_bullet_accuracy()
 	RegisterSignals(gun_user, list(COMSIG_RANGED_ACCURACY_MOD_CHANGED,
 		COMSIG_RANGED_SCATTER_MOD_CHANGED,
 		COMSIG_MOB_SKILLS_CHANGED,
 		COMSIG_MOB_SHOCK_STAGE_CHANGED,
 		COMSIG_HUMAN_MARKSMAN_AURA_CHANGED), PROC_REF(setup_bullet_accuracy))
-	SEND_SIGNAL(gun_user, COMSIG_GUN_USER_SET, src)
-	if(flags_gun_features & GUN_AMMO_COUNTER)
-		gun_user.hud_used.add_ammo_hud(src, get_ammo_list(), get_display_ammo_count())
-	if(master_gun)
-		return
 	if(!CHECK_BITFIELD(flags_item, IS_DEPLOYED))
 		RegisterSignal(gun_user, COMSIG_MOB_MOUSEDOWN, PROC_REF(start_fire))
 		RegisterSignal(gun_user, COMSIG_MOB_MOUSEDRAG, PROC_REF(change_target))
@@ -791,7 +808,7 @@
 		if(!gun_user)
 			addtimer(CALLBACK(src, PROC_REF(fire_after_autonomous_windup)), windup_delay)
 			return NONE
-		if(!do_after(gun_user, windup_delay, TRUE, src, BUSY_ICON_DANGER, BUSY_ICON_DANGER, ignore_turf_checks = TRUE))
+		if(!do_after(gun_user, windup_delay, IGNORE_LOC_CHANGE, src, BUSY_ICON_DANGER, BUSY_ICON_DANGER))
 			windup_checked = WEAPON_WINDUP_NOT_CHECKED
 			return NONE
 		windup_checked = WEAPON_WINDUP_CHECKED
@@ -863,6 +880,11 @@
 	if(gun_user)
 		projectile_to_fire.firer = gun_user
 		projectile_to_fire.def_zone = gun_user.zone_selected
+
+		if(gun_user.skills.getRating(SKILL_FIREARMS) >= SKILL_FIREARMS_DEFAULT)
+			var/skill_level = gun_user.skills.getRating(gun_skill_category)
+			if(skill_level > 0)
+				projectile_to_fire.damage *= 1 + skill_level * FIREARM_SKILL_DAM_MOD
 
 		if((world.time - gun_user.last_move_time) < 5) //if you moved during the last half second, you have some penalties to accuracy and scatter
 			if(flags_item & FULLY_WIELDED)
@@ -968,7 +990,14 @@
 	simulate_recoil(dual_wield, firing_angle)
 
 	projectile_to_fire.fire_at(target, master_gun ? gun_user : loc, src, projectile_to_fire.ammo.max_range, projectile_to_fire.projectile_speed, firing_angle, suppress_light = HAS_TRAIT(src, TRAIT_GUN_SILENCED))
-
+	if(CHECK_BITFIELD(flags_gun_features, GUN_SMOKE_PARTICLES))
+		var/x_component = sin(firing_angle) * 40
+		var/y_component = cos(firing_angle) * 40
+		var/obj/effect/abstract/particle_holder/gun_smoke = new(get_turf(src), /particles/firing_smoke)
+		gun_smoke.particles.velocity = list(x_component, y_component)
+		addtimer(VARSET_CALLBACK(gun_smoke.particles, count, 0), 5)
+		addtimer(VARSET_CALLBACK(gun_smoke.particles, drift, 0), 3)
+		QDEL_IN(gun_smoke, 0.6 SECONDS)
 	shots_fired++
 
 	if(fire_animation) //Fires gun firing animation if it has any. ex: rotating barrel
@@ -1009,7 +1038,7 @@
 	user.visible_message(span_warning("[user] sticks their gun in their mouth, ready to pull the trigger."))
 	log_combat(user, null, "is trying to commit suicide")
 
-	if(!do_after(user, 40, TRUE, src, BUSY_ICON_DANGER))
+	if(!do_after(user, 40, NONE, src, BUSY_ICON_DANGER))
 		M.visible_message(span_notice("[user] decided life was worth living."))
 		ENABLE_BITFIELD(flags_gun_features, GUN_CAN_POINTBLANK)
 		return
@@ -1049,7 +1078,7 @@
 			user.apply_damage(200, OXY)
 			if(ishuman(user) && user == M)
 				var/mob/living/carbon/human/HM = user
-				HM.set_undefibbable() //can't be defibbed back from self inflicted gunshot to head
+				HM.set_undefibbable(TRUE) //can't be defibbed back from self inflicted gunshot to head
 			user.death()
 
 	user.log_message("commited suicide with [src]", LOG_ATTACK, "red") //Apply the attack log.
@@ -1227,7 +1256,7 @@
 			return FALSE
 		if(get_magazine_reload_delay(new_mag) > 0 && user && !force)
 			to_chat(user, span_notice("You begin reloading [src] with [new_mag]."))
-			if(!do_after(user, get_magazine_reload_delay(new_mag), TRUE, user))
+			if(!do_after(user, get_magazine_reload_delay(new_mag), NONE, user))
 				to_chat(user, span_warning("Your reload was interupted!"))
 				return FALSE
 		if(CHECK_BITFIELD(reciever_flags, AMMO_RECIEVER_ROTATES_CHAMBER))
@@ -1707,6 +1736,9 @@
 ///Sets the projectile accuracy and scatter
 /obj/item/weapon/gun/proc/setup_bullet_accuracy()
 	SIGNAL_HANDLER
+	if(gunattachment)
+		gunattachment.setup_bullet_accuracy()
+
 	var/wielded_fire = FALSE
 	gun_accuracy_mod = 0
 	gun_scatter = 0
