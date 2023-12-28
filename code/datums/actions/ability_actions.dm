@@ -62,7 +62,7 @@
 	var/ignore_hand_blocked_incapacitated = flags_to_check & ABILITY_IGNORE_HAND_BLOCKED
 	if(!(flags_to_check & ABILITY_USE_INCAP) && carbon_owner.incapacitated(ignore_hand_blocked_incapacitated))
 		if(!silent)
-			X.balloon_alert(X, "Cannot while incapacitated")
+			carbon_owner.balloon_alert(carbon_owner, "Cannot while incapacitated")
 		return FALSE
 	if(!(flags_to_check & ABILITY_USE_LYING) && carbon_owner.lying_angle)
 		if(!silent)

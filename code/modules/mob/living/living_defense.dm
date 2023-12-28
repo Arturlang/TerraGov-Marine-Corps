@@ -175,9 +175,9 @@
 		span_notice("You stop, drop, and roll!"), null, 5)
 		if(fire_stacks <= 0)
 			if(!(SEND_SIGNAL(src, COMSIG_LIVING_RESIST_EXTINGUISH_MESSAGE) & COMSIG_EXTINGUISH_NO_MESSAGE))
-			visible_message(span_danger("[src] has successfully extinguished themselves!"), \
-				span_notice("You extinguish yourself."), null, 5)
-			ExtinguishMob()
+				visible_message(span_danger("[src] has successfully extinguished themselves!"), \
+					span_notice("You extinguish yourself."), null, 5)
+				ExtinguishMob()
 	Paralyze(3 SECONDS)
 
 

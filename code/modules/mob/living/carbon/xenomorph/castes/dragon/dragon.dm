@@ -10,7 +10,7 @@
 	pixel_x = -16
 	old_x = -16
 	tier = XENO_TIER_FOUR
-	upgrade = XENO_UPGRADE_ZERO
+	upgrade = XENO_UPGRADE_BASETYPE
 	mob_size = MOB_SIZE_BIG
 	var/obj/effect/dragon_wings/wing_effect
 

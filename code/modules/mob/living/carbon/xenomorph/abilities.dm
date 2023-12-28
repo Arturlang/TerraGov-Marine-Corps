@@ -712,7 +712,7 @@
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_XENO_SPIT,
 	)
-	se_state_flags = ABILITY_USE_LYING|ABILITY_USE_BUCKLED|ABILITY_DO_AFTER_ATTACK
+	use_state_flags = ABILITY_USE_LYING|ABILITY_USE_BUCKLED|ABILITY_DO_AFTER_ATTACK
 	target_flags = ABILITY_MOB_TARGET
 	var/list/spit_sounds = list('sound/voice/alien_spitacid.ogg', 'sound/voice/alien_spitacid2.ogg')
 	///Current target that the xeno is targeting. This is for aiming.
@@ -744,7 +744,7 @@
 	X.update_spits(TRUE)
 	update_button_icon()
 
-/datum/action/xeno_action/activable/xeno_spit/proc/get_spit_type(mob/living/carbon/xenomorph/X)
+/datum/action/ability/activable/xeno/xeno_spit/proc/get_spit_type(mob/living/carbon/xenomorph/X)
 	for(var/i in 1 to length(X.xeno_caste.spit_types))
 		if(X.ammo == GLOB.ammo_list[X.xeno_caste.spit_types[i]])
 			if(i == length(X.xeno_caste.spit_types))
@@ -823,17 +823,17 @@
 
 	return continue_autospit(X)
 
-/datum/action/xeno_action/activable/xeno_spit/proc/continue_autospit(mob/living/carbon/xenomorph/spitter_xeno)
+/datum/action/ability/activable/xeno/xeno_spit/proc/continue_autospit(mob/living/carbon/xenomorph/spitter_xeno)
 	if(can_use_ability(current_target) && spitter_xeno.client)
 		succeed_activate()
 		return AUTOFIRE_CONTINUE
 	fail_activate()
 	return TRUE
 
-/datum/action/xeno_action/activable/xeno_spit/proc/play_spit_sound()
+/datum/action/ability/activable/xeno/xeno_spit/proc/play_spit_sound()
 	playsound(owner.loc, pick(spit_sounds), 25, TRUE)
 
-/datum/action/xeno_action/activable/xeno_spit/proc/alternate_fire_at(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
+/datum/action/ability/activable/xeno/xeno_spit/proc/alternate_fire_at(obj/projectile/newspit, datum/ammo/spit_ammo, mob/living/carbon/xenomorph/spitter_xeno)
 	return FALSE
 
 ///Resets the autofire component.

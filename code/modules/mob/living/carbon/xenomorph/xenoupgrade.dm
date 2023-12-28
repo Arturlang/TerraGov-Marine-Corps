@@ -336,17 +336,9 @@
 //============//
 //----DRAGON START----//
 
-/mob/living/carbon/xenomorph/dragon/mature
-	upgrade = XENO_UPGRADE_ONE
-
-/mob/living/carbon/xenomorph/dragon/elder
-	upgrade = XENO_UPGRADE_TWO
-
-/mob/living/carbon/xenomorph/dragon/ancient
-	upgrade = XENO_UPGRADE_THREE
-
 /mob/living/carbon/xenomorph/dragon/primordial
-	upgrade = XENO_UPGRADE_FOUR
+	upgrade = XENO_UPGRADE_PRIMO
+	upgrade_stored = TIER_THREE_THRESHOLD
 
 //---DRAGON END---//
 //============//

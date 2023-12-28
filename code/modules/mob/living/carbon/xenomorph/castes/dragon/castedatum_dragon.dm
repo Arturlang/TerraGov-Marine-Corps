@@ -3,26 +3,23 @@
 	display_name = "Dragon"
 	caste_desc = "A xenomorph with wings and a tail, and a fiery breath."
 	caste_type_path = /mob/living/carbon/xenomorph/dragon
-	// evolve_min_xenos = 14
+	evolve_min_xenos = 14
 	tier = XENO_TIER_FOUR
 	upgrade = XENO_UPGRADE_BASETYPE
 	wound_type = "dragon"
 
 	// *** Melee Attacks *** //
-	melee_damage = 25
+	melee_damage = 27
 
 	// *** Speed *** //
-	speed = 0.3
+	speed = 0.1
 
 	// *** Plasma *** //
-	plasma_max = 900
-	plasma_gain = 40
+	plasma_max = 1200
+	plasma_gain = 70
 
 	// *** Health *** //
-	max_health = 450
-
-	// *** Evolution *** //
-	upgrade_threshold = TIER_THREE_YOUNG_THRESHOLD
+	max_health = 700
 
 	deevolves_to = list(/mob/living/carbon/xenomorph/ravager, /mob/living/carbon/xenomorph/shrike, /mob/living/carbon/xenomorph/gorger, /mob/living/carbon/xenomorph/praetorian)
 
@@ -30,7 +27,8 @@
 	can_flags = CASTE_CAN_BE_QUEEN_HEALED|CASTE_CAN_BE_LEADER|CASTE_CAN_BE_GIVEN_PLASMA
 
 	// *** Defense *** //
-	soft_armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 45, FIRE = 60, ACID = 45)
+	soft_armor = list(MELEE = 0, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 15, BIO = 60, FIRE = 85, ACID = 60)
+	hard_armor = list(MELEE = 0, BULLET = 10, LASER = 10, ENERGY = 0, BOMB = 0, BIO = 0, FIRE = 30, ACID = 0)
 
 	// *** Ranged Attack *** //
 	spit_delay = 1 SECONDS
@@ -41,126 +39,32 @@
 
 	// *** Abilities *** //
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/tail_stab,
-		/datum/action/xeno_action/flight,
-		/datum/action/xeno_action/activable/xeno_spit/fireball,
-		/datum/action/xeno_action/activable/charge/hell_dash
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/tail_stab,
+		/datum/action/ability/xeno/flight,
+		/datum/action/ability/activable/xeno/xeno_spit/fireball,
+		/datum/action/ability/activable/xeno/charge/hell_dash
 	)
 
-/datum/xeno_caste/dragon/young
-	upgrade_name = "Young"
-
-	upgrade = XENO_UPGRADE_ZERO
-
-/datum/xeno_caste/dragon/mature
-	upgrade_name = "Mature"
-	caste_desc = "A draconic xenomorph. It looks a little more dangerous."
-	upgrade = XENO_UPGRADE_ONE
-	// *** Melee Attacks *** //
-	melee_damage = 30
-
-	// *** Speed *** //
-	speed = 0.2
-
-	// *** Plasma *** //
-	plasma_max = 1000
-	plasma_gain = 50
-
-	// *** Health *** //
-	max_health = 550
-
-	// *** Evolution *** //
-	upgrade_threshold = TIER_THREE_MATURE_THRESHOLD
-
-	// *** Defense *** //
-	soft_armor = list(MELEE = 5, BULLET = 5, LASER = 5, ENERGY = 5, BOMB = 5, BIO = 50, FIRE = 65, ACID = 50)
-
-/datum/xeno_caste/dragon/elder
-	upgrade_name = "Elder"
-	caste_desc = "A draconic xenomorph. It looks a bit more dangerous."
-	upgrade = XENO_UPGRADE_TWO
-
-	// *** Melee Attacks *** //
-	melee_damage = 35
-
-	// *** Speed *** //
-	speed = 0.1
-
-	// *** Plasma *** //
-	plasma_max = 1100
-	plasma_gain = 60
-
-	// *** Health *** //
-	max_health = 600
-
-	// *** Evolution *** //
-	upgrade_threshold = TIER_THREE_ELDER_THRESHOLD
-
-	// *** Defense *** //
-	soft_armor = list(MELEE = 10, BULLET = 10, LASER = 10, ENERGY = 10, BOMB = 10, BIO = 5, FIRE = 70, ACID = 55)
-
-/datum/xeno_caste/dragon/ancient
-	upgrade_name = "Ancient"
-	caste_desc = "You can feel heat radiating from this xenomorph, best watch the skies, or be lit aflame."
-	ancient_message = "The ground shall be charred by your fiery breath, and the skies shall be darkened by your shadow."
-	upgrade = XENO_UPGRADE_THREE
-
-	// *** Melee Attacks *** //
-	melee_damage = 35
-
-	// *** Speed *** //
-	speed = 0.1
-
-	// *** Plasma *** //
-	plasma_max = 1200
-	plasma_gain = 70
-
-	// *** Health *** //
-	max_health = 700
-
-	// *** Evolution *** //
-	upgrade_threshold = TIER_THREE_ANCIENT_THRESHOLD
-
-	// *** Defense *** //
-	soft_armor = list(MELEE = 15, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 15, BIO = 60, FIRE = 85, ACID = 60)
+/datum/xeno_caste/dragon/normal
+	upgrade_name = XENO_UPGRADE_NORMAL
 
 /datum/xeno_caste/dragon/primordial
 	upgrade_name = "Primordial"
 	caste_desc = "You can feel heat radiating from this xenomorph, best watch the skies, or be lit aflame."
-	upgrade = XENO_UPGRADE_FOUR
+	upgrade = XENO_UPGRADE_PRIMO
 	primordial_message = "The skies shall be blotted out by your fiery breath, and the earth shall tremble at your approach. You are the dragon, and you are primordial."
-
-	// *** Melee Attacks *** //
-	melee_damage = 35
-
-	// *** Speed *** //
-	speed = 0.1
-
-	// *** Plasma *** //
-	plasma_max = 1200
-	plasma_gain = 70
-
-	// *** Health *** //
-	max_health = 700
-
-	// *** Defense *** //
-	soft_armor = list(MELEE = 15, BULLET = 15, LASER = 15, ENERGY = 15, BOMB = 15, BIO = 60, FIRE = 85, ACID = 60)
-
-	spit_types = list(
-		/datum/ammo/flamethrower/dragon_fire,
-	)
 
 	// *** Abilities *** //
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/tail_stab,
-		/datum/action/xeno_action/flight,
-		/datum/action/xeno_action/activable/xeno_spit/fireball,
-		/datum/action/xeno_action/activable/charge/hell_dash,
-		/datum/action/xeno_action/activable/incendiary_gas
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/tail_stab,
+		/datum/action/ability/xeno/flight,
+		/datum/action/ability/activable/xeno/xeno_spit/fireball,
+		/datum/action/ability/activable/xeno/charge/hell_dash,
+		/datum/action/ability/activable/xeno/incendiary_gas
 	)
