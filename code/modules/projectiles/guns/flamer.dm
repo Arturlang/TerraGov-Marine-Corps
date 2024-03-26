@@ -51,6 +51,9 @@
 		/obj/item/ammo_magazine/flamer_tank/backtank,
 		/obj/item/ammo_magazine/flamer_tank/backtank/X,
 	)
+	light_range = 0.1
+	light_power = 0.1
+	light_color = LIGHT_COLOR_ORANGE
 	///Max range of the flamer in tiles.
 	var/flame_max_range = 6
 	///Max resin wall penetration in tiles.
@@ -115,10 +118,11 @@
 		return
 	if(light)
 		ENABLE_BITFIELD(flags_flamer_features, FLAMER_IS_LIT)
+		turn_light(null, TRUE)
 	else
 		DISABLE_BITFIELD(flags_flamer_features, FLAMER_IS_LIT)
+		turn_light(null, FALSE)
 	playsound(src, CHECK_BITFIELD(flags_flamer_features, FLAMER_IS_LIT) ? 'sound/weapons/guns/interact/flamethrower_on.ogg' : 'sound/weapons/guns/interact/flamethrower_off.ogg', 25, 1)
-
 
 	if(CHECK_BITFIELD(flags_flamer_features, FLAMER_NO_LIT_OVERLAY))
 		return
@@ -134,6 +138,12 @@
 	lit_overlay.pixel_x += lit_overlay_offset_x
 	lit_overlay.pixel_y += lit_overlay_offset_y
 	. += lit_overlay
+
+/obj/item/weapon/gun/flamer/turn_light(mob/user, toggle_on)
+	. = ..()
+	if(. != CHECKS_PASSED)
+		return
+	set_light_on(toggle_on)
 
 /obj/item/weapon/gun/flamer/able_to_fire(mob/user)
 	. = ..()
@@ -304,6 +314,11 @@
 		/obj/item/ammo_magazine/flamer_tank/backtank/X,
 	)
 
+/obj/item/weapon/gun/flamer/som/apply_custom(mutable_appearance/standing, inhands, icon_used, state_used)
+	. = ..()
+	var/mutable_appearance/emissive_overlay = emissive_appearance(icon_used, "[state_used]_emissive")
+	standing.overlays.Add(emissive_overlay)
+
 /obj/item/weapon/gun/flamer/som/mag_harness
 	starting_attachment_types = list(/obj/item/attachable/flamer_nozzle/wide, /obj/item/attachable/magnetic_harness)
 
@@ -328,6 +343,13 @@
 		/obj/item/attachable/flamer_nozzle/long,
 	)
 	starting_attachment_types = list(/obj/item/attachable/flamer_nozzle, /obj/item/attachable/stock/t84stock)
+
+/obj/item/weapon/gun/flamer/big_flamer/marinestandard/engineer/beginner
+	starting_attachment_types = list(
+		/obj/item/attachable/motiondetector,
+		/obj/item/attachable/flamer_nozzle,
+		/obj/item/attachable/stock/t84stock,
+	)
 
 /obj/item/weapon/gun/flamer/mini_flamer
 	name = "mini flamethrower"
@@ -403,7 +425,7 @@
 ///Flamer windup called before firing
 /obj/item/weapon/gun/flamer/big_flamer/marinestandard/proc/do_windup()
 	windup_checked = WEAPON_WINDUP_CHECKING
-	if(!do_after(gun_user, 1 SECONDS, TRUE, src))
+	if(!do_after(gun_user, 1 SECONDS, IGNORE_USER_LOC_CHANGE, src))
 		windup_checked = WEAPON_WINDUP_NOT_CHECKED
 		return
 	windup_checked = WEAPON_WINDUP_CHECKED
@@ -436,7 +458,7 @@
 		old_fire.set_fire(new_fire_level, new_burn_level, f_color, fire_stacks, fire_damage, burn_flags, fire_type)
 		return
 
-	new /obj/flamer_fire(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage)
+	new fire_type(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
 
 /turf/open/floor/plating/ground/snow/ignite(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0)
 	if(slayer > 0)
@@ -495,6 +517,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 /obj/flamer_fire/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, burn_flags)
 	. = ..()
 	set_fire(fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage)
+	updateicon()
 
 	START_PROCESSING(SSobj, src)
 
@@ -525,8 +548,8 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 		qdel(src)
 
 ///Sets the fire object to the correct colour and fire values, and applies the initial effects to any mob on the turf
-/obj/flamer_fire/proc/set_fire(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, burn_flags, fire_type = /obj/flamer_fire)
-	if(fire_type != type)
+/obj/flamer_fire/proc/set_fire(fire_lvl, burn_lvl, f_color, fire_stacks = 0, fire_damage = 0, burn_flags, fire_type)
+	if(fire_type && fire_type != type)
 		qdel(src)
 		new fire_type(src, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
 	else 
@@ -537,7 +560,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 			GLOB.flamer_particles[flame_color] = new /particles/flamer_fire(flame_color)
 
 		particles = GLOB.flamer_particles[flame_color]
-		icon_state = "[flame_color]_2"
+		// icon_state = "[flame_color]_2"
 
 		if(fire_lvl)
 			firelevel = fire_lvl
@@ -552,15 +575,15 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 		C.take_overall_damage(fire_damage, BURN, FIRE, updating_health = TRUE)
 
 /obj/flamer_fire/proc/updateicon()
-	var/light_color = "LIGHT_COLOR_LAVA"
+	var/light_color = "LIGHT_COLOR_FLAME"
 	var/light_intensity = 3
 	switch(flame_color)
 		if("red")
-			light_color = LIGHT_COLOR_LAVA
+			light_color = LIGHT_COLOR_FLAME
 		if("blue")
-			light_color = LIGHT_COLOR_CYAN
+			light_color = LIGHT_COLOR_BLUE_FLAME
 		if("green")
-			light_color = LIGHT_COLOR_GREEN
+			light_color = LIGHT_COLOR_ELECTRIC_GREEN
 		if("purple")
 			light_color = LIGHT_COLOR_PURPLE
 	switch(firelevel)
@@ -603,7 +626,7 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 
 // Variant of flamer fire without fire amount stages, but has smoothing
 /obj/flamer_fire/autosmoothing
-	mouse_opacity = MOUSE_OPACITY_OPAQUE
+	mouse_opacity = MOUSE_OPACITY_ICON
 	base_icon_state = "fire"
 	icon_state = "fire-0"
 	color = COLOR_ORANGE
@@ -623,7 +646,8 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 	// How much percentage of the fire lifetime is left
 	var/fire_percentage = firelevel / initial(firelevel)
 	// Gets more seethrough as it's about to go out
-	animate(src, alpha = clamp(255 * fire_percentage + 40, 0, 255), time = 0.5 SECONDS)
+	var/fire_opacity = clamp(255 * fire_percentage + 40, 0, 255)
+	animate(src, alpha = fire_opacity, time = 0.5 SECONDS)
 
 /obj/flamer_fire/autosmoothing/resin
 	burnflags = BURN_HUMANS|BURN_ENVIRONMENT
@@ -635,16 +659,15 @@ GLOBAL_LIST_EMPTY(flamer_particles)
 	var/debug_maptext = TRUE
 
 /obj/flamer_fire/autosmoothing/resin/Initialize(mapload, fire_lvl, burn_lvl, f_color, fire_stacks, fire_damage, burn_flags)
-	. = ..()
 	if(debug_maptext)
 		map_text = new(loc)
 		// DEBUG bonk me if you see this
 		map_text.maptext = "[icon_state]"
+	. = ..()
 
 /obj/flamer_fire/autosmoothing/resin/updateicon()
 	. = ..()
-	// DEBUG bonk me if you see this
-	if(debug_maptext)
+	if(map_text)
 		map_text.maptext = "[icon_state]"
 
 /obj/flamer_fire/autosmoothing/resin/Destroy()

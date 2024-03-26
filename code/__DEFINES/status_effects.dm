@@ -39,6 +39,9 @@
 
 #define STATUS_EFFECT_DRAIN_SURGE /datum/status_effect/drain_surge
 
+#define STATUS_EFFECT_MINDMEND /datum/status_effect/mindmeld
+
+#define STATUS_EFFECT_REKNIT_FORM /datum/status_effect/reknit_form
 /////////////
 // DEBUFFS //
 /////////////
@@ -71,7 +74,7 @@
 
 #define STATUS_EFFECT_INTOXICATED /datum/status_effect/stacking/intoxicated //Damage over time
 
-#define STATUS_EFFECT_DRAGONFIRE /datum/status_effect/dragon_fire // The affected mob has been set on fire by a dragon, acts like fire, but with a few differences
+#define STATUS_EFFECT_DRAGONFIRE /datum/status_effect/stacking/dragonfire // The affected mob has been set on fire by a dragon, acts like fire, but with a few differences
 
 #define STATUS_EFFECT_FLIGHT /datum/status_effect/xeno/flight // The affected mob starts bobbing upwards and then become intangible for as long as the status effect exists
 

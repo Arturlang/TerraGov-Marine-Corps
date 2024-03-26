@@ -57,6 +57,9 @@
 		var/image/lid = image(icon, src, "lid_bottle")
 		overlays += lid
 
+/obj/item/reagent_containers/glass/bottle/empty //Because the parent has RNG icon_state
+	icon_state = "bottle-1" //Same one when you make a bottle in the chem master
+
 /obj/item/reagent_containers/glass/bottle/inaprovaline
 	name = "\improper Inaprovaline bottle"
 	desc = "A small bottle. Contains inaprovaline - used to stabilize patients."
@@ -70,7 +73,7 @@
 	list_reagents = list(/datum/reagent/medicine/kelotane = 60)
 
 /obj/item/reagent_containers/glass/bottle/dexalin
-	name = "\improper Dexaline bottle"
+	name = "\improper Dexalin bottle"
 	desc = "A small bottle. Contains dexalin - used to supply blood with oxygen."
 	icon_state = "bottle10"
 	list_reagents = list(/datum/reagent/medicine/dexalin = 60)
@@ -188,6 +191,18 @@
 	icon_state = "bottle-5"
 	list_reagents = list(/datum/reagent/medicine/tricordrazine = 60)
 
+/obj/item/reagent_containers/glass/bottle/paracetamol
+	name = "\improper Paracetamol bottle"
+	desc = "A small bottle. Contains paracetamol - a mild, simple painkiller, good for enduring heavy labor."
+	icon_state = "bottle-1"
+	list_reagents = list(/datum/reagent/medicine/paracetamol = 60)
+
+/obj/item/reagent_containers/glass/bottle/isotonic
+	name = "\improper Saline-Glucose bottle"
+	desc = "A small bottle. Contains saline-glucose, also known as isotonic - used to aid the body in blood restoration."
+	icon_state = "bottle-1"
+	list_reagents = list(/datum/reagent/medicine/saline_glucose = 60)
+
 /obj/item/reagent_containers/glass/bottle/meralyne
 	name = "\improper Meralyne bottle"
 	desc = "A small bottle. Contains meralyne - used as a potent treatment against brute damage."
@@ -230,6 +245,6 @@
 
 /obj/item/reagent_containers/glass/bottle/doctor_delight
 	name = "\improper Doctor's Delight bottle"
-	desc = "A small bottle. Contains Doctor's Delight."
+	desc = "A small bottle. Contains Doctor's Delight - functions similar to tricordrazine, but is weaker and makes the patient hungry."
 	icon_state = "bottle3"
 	list_reagents = list(/datum/reagent/consumable/drink/doctor_delight = 60)
