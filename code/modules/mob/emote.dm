@@ -15,7 +15,7 @@
 	if(!E.check_cooldown(src, intentional))
 		to_chat(src, span_notice("You used that emote too recently."))
 		return
-	E.run_emote(src, param, m_type, intentional)
+	INVOKE_ASYNC(E, TYPE_PROC_REF(/datum/emote, run_emote), src, param, m_type, intentional)
 
 
 /datum/emote/help

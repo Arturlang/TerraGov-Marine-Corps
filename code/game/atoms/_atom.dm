@@ -555,10 +555,6 @@ directive is properly returned.
 	VV_DROPDOWN_OPTION(VV_HK_ATOM_JUMP_TO, "Jump To")
 	VV_DROPDOWN_OPTION(VV_HK_MODIFY_TRANSFORM, "Modify Transform")
 	VV_DROPDOWN_OPTION(VV_HK_ADD_REAGENT, "Add reagent")
-	VV_DROPDOWN_OPTION(VV_HK_MODIFY_FILTERS, "Modify Filters")
-	VV_DROPDOWN_OPTION(VV_HK_MODIFY_GREYSCALE_COLORS, "Modify Greyscale Colors")
-	VV_DROPDOWN_OPTION(VV_HK_EDIT_COLOR_MATRIX, "Edit Color as Matrix")
-	VV_DROPDOWN_OPTION(VV_HK_TEST_MATRIXES, "Test Matrices")
 
 /atom/vv_do_topic(list/href_list)
 	. = ..()
@@ -653,27 +649,7 @@ directive is properly returned.
 					log_admin("[key_name(usr)] has added [amount] units of [chosen_id] to [src].")
 					message_admins("[ADMIN_TPMONTY(usr)] has added [amount] units of [chosen_id] to [src].")
 
-	if(href_list[VV_HK_MODIFY_FILTERS])
-		if(!check_rights(R_VAREDIT))
-			return
-		var/client/C = usr.client
-		C?.open_filter_editor(src)
 
-	if(href_list[VV_HK_MODIFY_GREYSCALE_COLORS])
-		if(!check_rights(R_DEBUG))
-			return
-		var/datum/greyscale_modify_menu/menu = new(usr)
-		menu.ui_interact(usr)
-
-	if(href_list[VV_HK_EDIT_COLOR_MATRIX])
-		if(!check_rights(R_VAREDIT))
-			return
-		usr.client?.open_color_matrix_editor(src)
-
-	if(href_list[VV_HK_TEST_MATRIXES])
-		if(!check_rights(R_VAREDIT))
-			return
-		usr.client?.open_matrix_tester(src)
 
 /atom/vv_get_header()
 	. = ..()

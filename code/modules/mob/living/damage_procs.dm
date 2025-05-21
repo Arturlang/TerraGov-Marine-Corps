@@ -15,6 +15,7 @@
 	standard 0 if fail
 */
 /mob/living/proc/apply_damage(damage = 0, damagetype = BRUTE, def_zone, blocked = 0, sharp = FALSE, edge = FALSE, updating_health = FALSE, penetration)
+	SHOULD_NOT_SLEEP(TRUE)
 	if(status_flags & (GODMODE))
 		return
 	if(isnum(blocked))

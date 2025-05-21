@@ -365,13 +365,13 @@
  * * easing - easing arg of the BYOND animate() proc.
  * * loop - loop arg of the BYOND animate() proc.
  */
-/datum/proc/transition_filter(name, list/new_params, time, easing, loop)
+/datum/proc/transition_filter(name, list/new_params, time, easing, loop, flags)
 	var/filter = get_filter(name)
 	if(!filter)
 		return
 	// This can get injected by the filter procs, we want to support them so bye byeeeee
 	new_params -= "type"
-	animate(filter, new_params, time = time, easing = easing, loop = loop)
+	animate(filter, new_params, time = time, easing = easing, loop = loop, flags = flags)
 	modify_filter(name, new_params)
 
 /// Updates the priority of the passed filter key
@@ -411,3 +411,47 @@
 	var/atom/atom_cast = src // filters only work with images or atoms.
 	filter_data = null
 	atom_cast.filters = null
+
+
+/* * Alpha mask transition proc
+ * Helper for easily making alpha mask transitions for health bars and other things.
+ * Essentially, uses a alpha masks to hide sections of your image based on input values.
+ * Note, only modify value/min/max/time/easing/flags works with already pre-existing filters, as to reduce changes.
+ * Arguments:
+ * * bar - The image to apply the transition to
+ * * filter_name - The name of the filter to apply the transition to
+ * * value - The value that transforms into the percentage of between min and max.
+ * * min - The minimum value of the filter percentage
+ * * max - The maximum value of the filter percentage
+ * * modify_value - The value to modify the filter by
+ * * time - The time it takes for the transition to complete
+ * * easing - The easing function to use for the transition
+ */
+/datum/proc/alpha_mask_hide_transition(
+	icon/alpha_mask,
+	filter_name,
+	value = 0,
+	min = -32,
+	max = 0,
+	priority = 1,
+	modify_value = "y",
+	time = 0.4 SECONDS,
+	easing = SINE_EASING,
+	flags = ANIMATION_PARALLEL
+)
+	if(!filter_name)
+		CRASH("invalid arguments passed to alpha_mask_hide_transition")
+	var/new_alpha_mask_value = min + (max - min) * (1 - value / 100)
+
+
+	if(!get_filter(filter_name))
+		if(!istype(alpha_mask)) return
+		var/list/alpha_mask_args = list(
+			icon = alpha_mask,
+			flags = flags,
+			"[modify_value]" = new_alpha_mask_value
+		)
+		add_filter(filter_name, priority, alpha_mask_filter(arglist(alpha_mask_args)))
+		return
+	var/transition_list = list("[modify_value]" = new_alpha_mask_value)
+	transition_filter(filter_name, transition_list , time, easing, flags)

@@ -40,9 +40,6 @@
 	update_wounds()
 	update_snowflake_overlays()
 
-	hud_set_sunder()
-	hud_set_firestacks()
-
 /mob/living/carbon/xenomorph/regenerate_icons()
 	..()
 
@@ -100,6 +97,7 @@
 		return
 	fire_luminosity = fire_light
 	fire_overlay.update_appearance(UPDATE_ICON)
+	hud_set_firestacks()
 
 ///Updates the wound overlays on the xeno
 /mob/living/carbon/xenomorph/proc/update_wounds()

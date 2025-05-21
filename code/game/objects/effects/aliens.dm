@@ -86,8 +86,11 @@
 		INVOKE_ASYNC(src, PROC_REF(emote), "pain")
 
 	next_move_slowdown += slow_amt
+	var/damage = 0
 	for(var/limb_to_hit in list(BODY_ZONE_PRECISE_L_FOOT, BODY_ZONE_PRECISE_R_FOOT))
-		INVOKE_ASYNC(src, PROC_REF(apply_damage), acid_damage * 0.5, BURN, limb_to_hit, ACID)
+		damage += apply_damage(acid_damage * 0.5, BURN, limb_to_hit, ACID)
+	if(damage)
+		updatehealth()
 
 /obj/effect/xenomorph/spray/process()
 	var/turf/T = loc

@@ -238,6 +238,8 @@
 	if(!loaded_reagents[loaded_reagent])
 		update_selected_reagent(null)
 		user.balloon_alert(user, "[initial(loaded_reagent.name)]: empty")
+	else
+		target.updatehealth()
 	loaded_reagent = null
 
 	var/obj/item/item_parent = parent

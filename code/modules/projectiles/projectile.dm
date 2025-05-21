@@ -1399,9 +1399,11 @@ So if we are on the 32th absolute pixel coordinate we are on tile 1, but if we a
 
 // Sundering procs
 /mob/living/proc/adjust_sunder(adjustment)
+	hud_set_sunder()
 	return 0
 
 /mob/living/proc/set_sunder(new_sunder)
+	hud_set_sunder()
 	return FALSE
 
 /mob/living/proc/get_sunder()

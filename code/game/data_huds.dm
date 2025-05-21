@@ -107,11 +107,23 @@
 		holder.icon_state = "health0"
 		return
 
-	var/amount = health > 0 ? round(health * 100 / maxHealth, 10) : CEILING(health, 10)
-	if(!amount && health < 0)
-		amount = -1 //don't want the 'zero health' icon when we are crit
-	holder.icon = 'icons/mob/hud/xeno_health.dmi'
-	holder.icon_state = "health[amount]"
+	var/amount = clamp(round(health * 100 / maxHealth, 1), 0, 100)
+	// var/max_alpha_mask_y = 32
+	// var/new_alpha_mask_y = max_alpha_mask_y - (max_alpha_mask_y * amount / 100)
+	var/new_icon = 'icons/mob/hud/xeno_health.dmi'
+	var/new_icon_state = "health100"
+
+	holder.alpha_mask_hide_transition(
+		holder.icon_state ? null : icon(new_icon, new_icon_state),
+		"health_hud_bar",
+		100-amount,
+	)
+
+	if(holder.icon_state == "")
+		holder.icon = new_icon
+		holder.icon_state = new_icon_state
+		// holder.add_filter(HUD_FILTER_NAME, 1, alpha_mask_filter(0, -new_alpha_mask_y, icon(holder.icon, holder.icon_state)))
+		return
 
 /mob/living/carbon/human/med_hud_set_health()
 	var/image/holder = hud_list[HEALTH_HUD]

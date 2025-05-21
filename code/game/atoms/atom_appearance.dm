@@ -150,6 +150,14 @@
 	realized_overlays = realize_appearance_queue(overlays)
 	realized_underlays = realize_appearance_queue(underlays)
 
+/image/vv_get_dropdown()
+	. = ..()
+	// TODO: TEST IF THESE WORK
+	VV_DROPDOWN_OPTION(VV_HK_MODIFY_FILTERS, "Modify Filters")
+	VV_DROPDOWN_OPTION(VV_HK_MODIFY_GREYSCALE_COLORS, "Modify Greyscale Colors")
+	VV_DROPDOWN_OPTION(VV_HK_EDIT_COLOR_MATRIX, "Edit Color as Matrix")
+	VV_DROPDOWN_OPTION(VV_HK_TEST_MATRIXES, "Test Matrices")
+
 /// Takes a list of appearnces, makes them mutable so they can be properly vv'd and inspected
 /proc/realize_appearance_queue(list/appearances)
 	var/list/real_appearances = list()
@@ -218,3 +226,4 @@
 	message_admins(text)
 	log_world(text)
 	return diff_found
+

@@ -105,6 +105,7 @@
 				return
 
 		if(amount != 0)
+			L.updatehealth()
 			var/log_msg = "[key_name(usr)] dealt [amount] amount of [Text] damage to [key_name(L)]"
 			message_admins("[key_name(usr)] dealt [amount] amount of [Text] damage to [ADMIN_LOOKUPFLW(L)]")
 			log_admin(log_msg)

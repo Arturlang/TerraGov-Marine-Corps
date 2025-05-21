@@ -58,7 +58,6 @@
 			heal_wounds(XENO_RESTING_HEAL * ruler_healing_penalty * loc_weeds_type ? initial(loc_weeds_type.resting_buff) : 1, TRUE, seconds_per_tick)
 		else
 			heal_wounds(XENO_STANDING_HEAL * ruler_healing_penalty, TRUE, seconds_per_tick) //Major healing nerf if standing.
-	updatehealth()
 
 ///Handles sunder modification/recovery during life.dm for xenos
 /mob/living/carbon/xenomorph/proc/handle_living_sunder_updates(seconds_per_tick)

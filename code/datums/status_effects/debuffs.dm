@@ -740,7 +740,7 @@
 	playsound(debuff_owner.loc, "sound/bullets/acid_impact1.ogg", 4)
 	particle_holder.particles.spawning = 1 + round(stacks / 2)
 
-	debuff_owner.apply_damage(STATUS_EFFECT_MELTING_DAMAGE, BURN, null, FIRE)
+	debuff_owner.apply_damage(STATUS_EFFECT_MELTING_DAMAGE, BURN, null, FIRE, updating_health = TRUE)
 
 	if(!isxeno(debuff_owner))
 		return
@@ -965,7 +965,7 @@
 	particle_holder.particles.spawning = 1 + round(stacks / 2)
 	particle_holder.pixel_x = -2
 	particle_holder.pixel_y = 0
-	owner.apply_damage(5, BURN, null, ACID)
+	owner.apply_damage(5, BURN, null, ACID, updating_health = TRUE)
 
 /atom/movable/screen/alert/status_effect/melting_acid
 	name = "Melting (Acid)"

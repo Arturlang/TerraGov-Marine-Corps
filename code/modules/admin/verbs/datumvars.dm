@@ -52,6 +52,29 @@
 		return FALSE //This is VV, not to be called by anything else.
 	if(SEND_SIGNAL(src, COMSIG_VV_TOPIC, usr, href_list) & COMPONENT_VV_HANDLED)
 		return FALSE
+
+	if(href_list[VV_HK_MODIFY_FILTERS])
+		if(!check_rights(R_VAREDIT))
+			return
+		var/client/C = usr.client
+		C?.open_filter_editor(src)
+
+	if(href_list[VV_HK_MODIFY_GREYSCALE_COLORS])
+		if(!check_rights(R_DEBUG))
+			return
+		var/datum/greyscale_modify_menu/menu = new(usr)
+		menu.ui_interact(usr)
+
+	if(href_list[VV_HK_EDIT_COLOR_MATRIX])
+		if(!check_rights(R_VAREDIT))
+			return
+		usr.client?.open_color_matrix_editor(src)
+
+	if(href_list[VV_HK_TEST_MATRIXES])
+		if(!check_rights(R_VAREDIT))
+			return
+		usr.client?.open_matrix_tester(src)
+
 	return TRUE
 
 /datum/proc/vv_get_header()
