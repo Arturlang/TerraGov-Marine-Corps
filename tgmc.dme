@@ -491,6 +491,7 @@
 #include "code\datums\components\connect_range.dm"
 #include "code\datums\components\deployable_item.dm"
 #include "code\datums\components\dripping.dm"
+#include "code\datums\components\dynamic_bar.dm"
 #include "code\datums\components\fov_handler.dm"
 #include "code\datums\components\grillable.dm"
 #include "code\datums\components\harvester.dm"
