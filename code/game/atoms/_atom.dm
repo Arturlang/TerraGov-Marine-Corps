@@ -555,6 +555,10 @@ directive is properly returned.
 	VV_DROPDOWN_OPTION(VV_HK_ATOM_JUMP_TO, "Jump To")
 	VV_DROPDOWN_OPTION(VV_HK_MODIFY_TRANSFORM, "Modify Transform")
 	VV_DROPDOWN_OPTION(VV_HK_ADD_REAGENT, "Add reagent")
+	VV_DROPDOWN_OPTION(VV_HK_MODIFY_FILTERS, "Modify Filters")
+	VV_DROPDOWN_OPTION(VV_HK_MODIFY_GREYSCALE_COLORS, "Modify Greyscale Colors")
+	VV_DROPDOWN_OPTION(VV_HK_EDIT_COLOR_MATRIX, "Edit Color as Matrix")
+	VV_DROPDOWN_OPTION(VV_HK_TEST_MATRIXES, "Test Matrices")
 
 /atom/vv_do_topic(list/href_list)
 	. = ..()
