@@ -368,7 +368,7 @@
 			targeted.ExtinguishMob()
 		if(isxeno(targeted))
 			var/mob/living/carbon/xenomorph/xeno_target = targeted
-			xeno_target.sunder = target_initial_sunder
+			xeno_target.set_sunder(target_initial_sunder)
 		targeted.remove_filter("rewind_blur")
 		REMOVE_TRAIT(targeted, TRAIT_TIME_SHIFTED, XENO_TRAIT)
 		targeted = null

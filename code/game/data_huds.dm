@@ -108,22 +108,17 @@
 		return
 
 	var/amount = clamp(round(health * 100 / maxHealth, 1), 0, 100)
-	// var/max_alpha_mask_y = 32
-	// var/new_alpha_mask_y = max_alpha_mask_y - (max_alpha_mask_y * amount / 100)
 	var/new_icon = 'icons/mob/hud/xeno_health.dmi'
 	var/new_icon_state = "health100"
 
-	holder.alpha_mask_hide_transition(
-		holder.icon_state ? null : icon(new_icon, new_icon_state),
-		"health_hud_bar",
-		100-amount,
-	)
-
-	if(holder.icon_state == "")
+	if(holder.icon_state == "" || !holder.GetComponent(/datum/component/dynamic_bar))
 		holder.icon = new_icon
 		holder.icon_state = new_icon_state
+		holder.AddComponent(/datum/component/dynamic_bar, list("filter_name" = "health_hud_bar"))
 		// holder.add_filter(HUD_FILTER_NAME, 1, alpha_mask_filter(0, -new_alpha_mask_y, icon(holder.icon, holder.icon_state)))
 		return
+
+	SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR("health_hud_bar"), 100-amount)
 
 /mob/living/carbon/human/med_hud_set_health()
 	var/image/holder = hud_list[HEALTH_HUD]

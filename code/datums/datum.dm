@@ -428,7 +428,8 @@
  * * easing - The easing function to use for the transition
  */
 /datum/proc/alpha_mask_hide_transition(
-	icon/alpha_mask,
+	icon,
+	icon_state,
 	filter_name,
 	value = 0,
 	min = -32,
@@ -440,18 +441,18 @@
 	flags = ANIMATION_PARALLEL
 )
 	if(!filter_name)
-		CRASH("invalid arguments passed to alpha_mask_hide_transition")
+		CRASH("missing required arg filter_name for alpha_mask_hide_transition")
 	var/new_alpha_mask_value = min + (max - min) * (1 - value / 100)
 
-
 	if(!get_filter(filter_name))
-		if(!istype(alpha_mask)) return
+		if(!icon || !icon_state) return
 		var/list/alpha_mask_args = list(
-			icon = alpha_mask,
+			icon = icon(icon, icon_state),
 			flags = flags,
 			"[modify_value]" = new_alpha_mask_value
 		)
 		add_filter(filter_name, priority, alpha_mask_filter(arglist(alpha_mask_args)))
 		return
+
 	var/transition_list = list("[modify_value]" = new_alpha_mask_value)
 	transition_filter(filter_name, transition_list , time, easing, flags)
