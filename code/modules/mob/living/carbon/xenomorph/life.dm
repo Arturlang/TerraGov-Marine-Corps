@@ -8,7 +8,6 @@
 	if(!loc)
 		return
 
-	..()
 
 	if(notransform) //If we're in true stasis don't bother processing life
 		return
@@ -30,6 +29,8 @@
 	handle_living_plasma_updates(seconds_per_tick)
 	update_action_button_icons()
 	update_icons(FALSE)
+
+	..()
 
 /mob/living/carbon/xenomorph/handle_fire()
 	. = ..()
