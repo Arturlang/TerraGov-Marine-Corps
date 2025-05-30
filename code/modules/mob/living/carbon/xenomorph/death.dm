@@ -37,7 +37,9 @@
 			hud_used.alien_plasma_display.icon_state = "power_display_empty"
 	update_icons()
 	hud_set_plasma()
+	hud_set_sunder()
 	hud_update_rank()
+	hud_set_firestacks()
 
 	death_cry()
 

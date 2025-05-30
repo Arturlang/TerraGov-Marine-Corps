@@ -103,15 +103,17 @@
 	if(!holder)
 		return
 	if(stat == DEAD)
-		holder.icon = 'icons/mob/hud/xeno_health.dmi'
-		holder.icon_state = "health0"
+		holder.icon_state = ""
 		return
 
+	// todo consider tis if i can redo this
 	var/amount = clamp(round(health * 100 / maxHealth, 1), 0, 100)
-	var/new_icon = 'icons/mob/hud/xeno_health.dmi'
-	var/new_icon_state = "health100"
+
 
 	if(holder.icon_state == "" || !holder.GetComponent(/datum/component/dynamic_bar))
+		var/new_icon = 'icons/mob/hud/xeno_health.dmi'
+		var/new_icon_state = "health100"
+
 		holder.icon = new_icon
 		holder.icon_state = new_icon_state
 		holder.AddComponent(/datum/component/dynamic_bar, list("filter_name" = "health_hud_bar"))

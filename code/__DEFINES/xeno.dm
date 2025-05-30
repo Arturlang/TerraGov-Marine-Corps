@@ -165,13 +165,16 @@ GLOBAL_LIST_INIT(xeno_ai_spawnable, list(
 	if(fire_loss) { \
 		var/fire_heal = min(fire_loss, amount); \
 		amount -= fire_heal;\
-		xeno.adjustFireLoss(-fire_heal, TRUE, passive); \
+		xeno.adjustFireLoss(-fire_heal); \
 	} \
 	var/brute_loss = xeno.getBruteLoss(); \
 	if(brute_loss) { \
 		var/brute_heal = min(brute_loss, amount); \
 		amount -= brute_heal; \
-		xeno.adjustBruteLoss(-brute_heal, TRUE, passive); \
+		xeno.adjustBruteLoss(-brute_heal); \
+	} \
+	if(!passive && (brute_loss || fire_loss)) { \
+		xeno.updatehealth(); \
 	} \
 } while(FALSE)
 

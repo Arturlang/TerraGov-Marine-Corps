@@ -15,7 +15,7 @@
 		"easing" = SINE_EASING,
 		"flags" = ANIMATION_PARALLEL
 	)
-	var/update_delay = 0.5 SECONDS
+	var/update_delay = 1 SECONDS
 	var/obj/effect/overlay/banked_bar_overlay
 
 /datum/component/dynamic_bar/Initialize(list/alpha_mask_args = list())
