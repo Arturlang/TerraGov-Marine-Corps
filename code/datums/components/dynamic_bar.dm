@@ -48,7 +48,6 @@
 	banked_bar_overlay.icon = alpha_mask_args["icon"]
 	banked_bar_overlay.icon_state = "damage_bar"
 	banked_bar_overlay.vis_flags = VIS_UNDERLAY|VIS_INHERIT_LAYER|VIS_INHERIT_PLANE
-	// banked_bar_overlay.vis_flags = VIS_UNDERLAY
 	var/image/source = parent
 	source.vis_contents += banked_bar_overlay
 

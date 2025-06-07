@@ -92,6 +92,8 @@
 
 /mob/living/carbon/xenomorph/med_hud_set_health()
 	if(hud_used?.healths)
+		if(stat == DEAD)
+			hud_used.healths.icon_state = "health_dead"
 		var/bucket
 		if(stat == DEAD)
 			bucket = "critical"
@@ -103,7 +105,7 @@
 	if(!holder)
 		return
 	if(stat == DEAD)
-		holder.icon_state = ""
+		SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR("health_hud_bar"), 0)
 		return
 
 	// todo consider tis if i can redo this
@@ -117,7 +119,6 @@
 		holder.icon = new_icon
 		holder.icon_state = new_icon_state
 		holder.AddComponent(/datum/component/dynamic_bar, list("filter_name" = "health_hud_bar"))
-		// holder.add_filter(HUD_FILTER_NAME, 1, alpha_mask_filter(0, -new_alpha_mask_y, icon(holder.icon, holder.icon_state)))
 		return
 
 	SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR("health_hud_bar"), 100-amount)
