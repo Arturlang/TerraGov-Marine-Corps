@@ -1,2 +1,3 @@
 
-#define COMSIG_DYNAMIC_BAR(name) ("update_bar_" + name)
+#define COMSIG_DYNAMIC_BAR_UPDATE_VALUE "dynamic_bar_update_value"
+#define COMSIG_DYNAMIC_BAR_UPDATE_ICON "dynamic_bar_update_icon"
