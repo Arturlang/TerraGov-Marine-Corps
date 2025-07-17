@@ -420,7 +420,7 @@
  * Arguments:
  * * bar - The image to apply the transition to
  * * filter_name - The name of the filter to apply the transition to
- * * value - The value that transforms into the percentage of between min and max.
+ * * value - 0-100 percentage value between min and max to apply the transition to
  * * min - The minimum value of the filter percentage
  * * max - The maximum value of the filter percentage
  * * modify_value - The value to modify the filter by

@@ -6,6 +6,8 @@
 	var/list/alpha_mask_args = list(
 		"icon" = 'icons/mob/hud/xeno_health.dmi',
 		"icon_state" = "health100",
+		"damage_icon" = 'icons/mob/hud/xeno_health.dmi',
+		"damage_icon_state" = "damage_bar",
 		"filter_name" = "",
 		"value" = 0,
 		"min" = -32,
@@ -24,14 +26,13 @@
 	if(!length(alpha_mask_args) || !alpha_mask_args["filter_name"])
 		stack_trace("No bar_name provided for dynamic_bar component on [parent]!")
 		return INITIALIZE_HINT_QDEL
-	src.alpha_mask_args += alpha_mask_args
-	RegisterSignal(parent, COMSIG_DYNAMIC_BAR(alpha_mask_args["filter_name"]), PROC_REF(bank_value_update))
+	src.alpha_mask_args = alpha_mask_args | src.alpha_mask_args
+	RegisterSignal(parent, COMSIG_DYNAMIC_BAR_UPDATE, PROC_REF(bank_value_update))
 	update_bar(parent, alpha_mask_args["value"], alpha_mask_args)
 	create_damage_bar()
 
 /datum/component/dynamic_bar/Destroy()
 	. = ..()
-	UnregisterSignal(parent, COMSIG_DYNAMIC_BAR(alpha_mask_args["filter_name"]))
 	if(banked_bar_overlay)
 		var/image/source = parent
 		source.vis_contents -= banked_bar_overlay
@@ -39,22 +40,29 @@
 
 /datum/component/dynamic_bar/proc/bank_value_update(atom/holder, new_value, list/new_args = list())
 	SIGNAL_HANDLER
+	alpha_mask_args = new_args | alpha_mask_args
+	alpha_mask_args["value"] = new_value
 	update_bar(holder, new_value, new_args)
+
+	if(new_args["damage_icon"] || new_args["damage_icon_state"])
+		banked_bar_overlay.icon = new_args["damage_icon"]
+		banked_bar_overlay.icon_state = new_args["damage_icon_state"]
 	addtimer(CALLBACK(src, PROC_REF(update_bar), banked_bar_overlay, new_value, new_args), update_delay, TIMER_UNIQUE|TIMER_OVERRIDE|TIMER_STOPPABLE)
 
 /// Reflects how much of the HP bar you've taken as a separate bar
 /datum/component/dynamic_bar/proc/create_damage_bar()
 	banked_bar_overlay = new()
-	banked_bar_overlay.icon = alpha_mask_args["icon"]
-	banked_bar_overlay.icon_state = "damage_bar"
+	banked_bar_overlay.icon = alpha_mask_args["damage_icon"]
+	banked_bar_overlay.icon_state = alpha_mask_args["damage_icon_state"]
 	banked_bar_overlay.vis_flags = VIS_UNDERLAY|VIS_INHERIT_LAYER|VIS_INHERIT_PLANE
 	var/image/source = parent
 	source.vis_contents += banked_bar_overlay
 
 /datum/component/dynamic_bar/proc/update_bar(atom/holder, new_value, list/new_args = list())
+
 	var/list/mask_args = alpha_mask_args.Copy()
-	mask_args += new_args
-	mask_args["value"] = new_value
+	mask_args -= "damage_icon"
+	mask_args -= "damage_icon_state"
 
 	holder.alpha_mask_hide_transition(arglist(mask_args))
 
