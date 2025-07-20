@@ -106,7 +106,7 @@
 		return
 	if(stat == DEAD)
 		holder.icon_state = ""
-		SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR_UPDATE_VALUE, 0)
+		SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR_UPDATE, 100)
 		return
 
 	// todo consider tis if i can redo this
@@ -114,6 +114,7 @@
 	if(amount < 0)
 		holder.icon_state = "healthdying"
 		// crit health is 100 so we need to account for it, as maxHealth is not always 100
+		var/hp_to_death = (health - get_death_threshold()) / (get_crit_threshold() - get_death_threshold()) * 100
 
 		amount = -get_death_threshold() + amount // -100 to 0
 	else if(amount <= 30)
@@ -127,7 +128,7 @@
 		holder.icon = 'icons/mob/hud/xeno_health.dmi'
 		holder.AddComponent(/datum/component/dynamic_bar, list("filter_name" = "health_hud_bar"))
 
-	SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR_UPDATE_VALUE, 100 - amount, list("icon_state" = holder.icon_state))
+	SEND_SIGNAL(holder, COMSIG_DYNAMIC_BAR_UPDATE, 100 - amount)
 
 /mob/living/carbon/human/med_hud_set_health()
 	var/image/holder = hud_list[HEALTH_HUD]

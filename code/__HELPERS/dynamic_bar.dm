@@ -1,3 +1,2 @@
-
-#define COMSIG_DYNAMIC_BAR_UPDATE_VALUE "dynamic_bar_update_value"
-#define COMSIG_DYNAMIC_BAR_UPDATE_ICON "dynamic_bar_update_icon"
+/// call on the holder of /datum/component/dynamic_bar with a value(0-100) and any other filter args
+#define COMSIG_DYNAMIC_BAR_UPDATE "dynamic_bar_update"
