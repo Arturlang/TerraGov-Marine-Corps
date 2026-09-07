@@ -405,6 +405,7 @@
 
 /obj/machinery/deployable/mounted/moveable/heavymachinegun
 	has_anchored_sprite = TRUE
+	has_empty_sprite = FALSE
 
 /obj/machinery/deployable/mounted/moveable/heavymachinegun/update_overlays()
 	. = ..()
