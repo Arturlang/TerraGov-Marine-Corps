@@ -26,6 +26,7 @@
 	for(var/atom/potential AS in engineering_list)
 		if(QDELETED(potential))
 			remove_from_engineering_list(potential)
+			continue
 		var/dist = get_dist(mob_parent, potential)
 		if(dist >= target_dist)
 			continue
@@ -44,10 +45,17 @@
 ///Adds atom to list
 /datum/ai_behavior/human/proc/add_to_engineering_list(atom/new_target)
 	engineering_list |= new_target
+	//PREQDELETED since QDELETED can already be registered
+	RegisterSignal(new_target, COMSIG_PREQDELETED, PROC_REF(on_engineering_target_deleted), TRUE)
 
 ///Removes atom from list
 /datum/ai_behavior/human/proc/remove_from_engineering_list(atom/old_target)
 	engineering_list -= old_target
+	UnregisterSignal(old_target, COMSIG_PREQDELETED)
+
+/datum/ai_behavior/human/proc/on_engineering_target_deleted(atom/source)
+	SIGNAL_HANDLER
+	remove_from_engineering_list(source)
 
 ///Our building ended, successfully or otherwise
 /datum/ai_behavior/human/proc/on_engineering_end(atom/old_target)

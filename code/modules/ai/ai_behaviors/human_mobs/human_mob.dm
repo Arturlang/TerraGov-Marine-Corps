@@ -49,6 +49,7 @@
 	melee_weapon = null
 	hazard_list = null
 	heal_list = null
+	engineering_list = null
 	atoms_to_interact = null
 	QDEL_NULL(mob_inventory)
 	return ..()
