@@ -113,7 +113,8 @@
 /datum/beam/proc/Start()
 	visuals = new beam_type()
 	set_up_effect(visuals, icon_state)
-	Draw()
+	if(ends_on_same_z())
+		Draw()
 	RegisterSignals(origin, list(COMSIG_MOVABLE_MOVED, COMSIG_QDELETING), PROC_REF(redrawing))
 	RegisterSignals(target, list(COMSIG_MOVABLE_MOVED, COMSIG_QDELETING), PROC_REF(redrawing))
 
@@ -129,8 +130,12 @@
 	SIGNAL_HANDLER
 	if(QDELING(src))
 		return
-	if(QDELETED(origin) || QDELETED(target) || get_dist(origin, target) >= max_distance || origin.z != target.z)
+	if(QDELETED(origin) || QDELETED(target) || get_dist(origin, target) >= max_distance)
 		qdel(src)
+		return
+	if(!ends_on_same_z())
+		QDEL_LIST(elements)
+		last_draw_valid = FALSE
 		return
 	var/queued_time = 0
 	if(animate && istype(mover))
@@ -140,6 +145,10 @@
 	// Synchronous: deferring via INVOKE_ASYNC would start animate() one render frame after the mob's
 	// BYOND-managed glide, making the beam trail. Draw() doesn't sleep, so calling it here is safe.
 	Draw()
+
+/// Beams can obviously only be drawn on the same z-level
+/datum/beam/proc/ends_on_same_z()
+	return origin.z && origin.z == target.z
 
 /datum/beam/Destroy()
 	QDEL_LIST(elements)

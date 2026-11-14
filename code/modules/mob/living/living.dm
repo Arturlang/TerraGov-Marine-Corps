@@ -208,7 +208,7 @@
 	//Only bother updating the camera if we actually managed to move
 	if(.)
 		update_camera_location(destination)
-		if(client)
+		if(client && !looking_vertically)
 			reset_perspective()
 
 ///Updates the mob's registered_z
@@ -1015,16 +1015,41 @@
 	var/atom/movable/container
 	///the actual owner who is "looking"
 	var/mob/living/owner
+	///See through copy of the owner shown to them where they stand
+	var/image/self_copy
 
 /atom/movable/looking_holder/Initialize(mapload, mob/living/owner, direction)
 	. = ..()
 	look_direction = direction
 	src.owner = owner
 	update_container()
+	self_copy = image(loc = get_self_copy_turf())
+	owner.client?.images += self_copy
+	update_self_copy()
+	RegisterSignals(owner, list(COMSIG_ATOM_DIR_CHANGE, COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED), PROC_REF(update_self_copy))
 
 /atom/movable/looking_holder/Destroy()
+	UnregisterSignal(owner, list(COMSIG_ATOM_DIR_CHANGE, COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED))
+	owner?.client?.images -= self_copy
+	self_copy = null
 	owner = null
 	return ..()
+
+///the turf the owner is above/below
+/atom/movable/looking_holder/proc/get_self_copy_turf()
+	var/turf/owner_turf = get_turf(owner)
+	return locate(owner_turf.x, owner_turf.y, z)
+
+// copies the appearance of the owner to the mimic icon
+/atom/movable/looking_holder/proc/update_self_copy()
+	SIGNAL_HANDLER
+	if(!self_copy)
+		return
+	self_copy.appearance = owner.appearance
+	self_copy.loc = get_self_copy_turf()
+	self_copy.alpha = 128
+	self_copy.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	SET_PLANE_EXPLICIT(self_copy, GAME_PLANE, self_copy.loc)
 
 ///called to find and set the atom on the actual turf to be the container and all relevant effects
 /atom/movable/looking_holder/proc/update_container()
@@ -1048,11 +1073,14 @@
 	if(!isturf(owner.loc))
 		update_container()
 	set_glide_size(container.glide_size)
-	var/turf/looking_turf = owner.get_looking_turf(look_direction)
+	var/turf/looking_turf = owner.get_looking_turf(look_direction, TRUE)
+	if(!looking_turf)
+		looking_turf = get_step_multiz(get_turf(owner), look_direction)
 	if(!looking_turf)
 		owner.end_look()
 		return
 	abstract_move(looking_turf)
+	update_self_copy()
 
 ///Checks if the user is incapacitated or on cooldown.
 /mob/living/proc/can_look_up()
@@ -1090,11 +1118,12 @@
 	looking_holder = new(above_turf, src, UP)
 	reset_perspective(looking_holder)
 
-/mob/living/proc/get_looking_turf(direction)
+/mob/living/proc/get_looking_turf(direction, silent = FALSE)
 	//down needs to check this floor
 	var/turf/check_turf = get_step_multiz(src, direction == DOWN ? NONE : direction)
 	if(!get_step_multiz(src, direction)) //We are at the edge z-level.
-		to_chat(src, span_warning("There's nothing interesting there."))
+		if(!silent)
+			to_chat(src, span_warning("There's nothing interesting there."))
 		return
 	else if(!istransparentturf(check_turf)) //There is no turf we can look through above us
 		var/turf/front_hole = get_step(check_turf, dir)
@@ -1106,7 +1135,8 @@
 					check_turf = checkhole
 					break
 		if(!istransparentturf(check_turf))
-			to_chat(src, span_warning("You can't see through the floor [direction == DOWN ? "below" : "above"] you."))
+			if(!silent)
+				to_chat(src, span_warning("You can't see through the floor [direction == DOWN ? "below" : "above"] you."))
 			return
 	return direction == DOWN ? get_step_multiz(check_turf, DOWN) : check_turf
 

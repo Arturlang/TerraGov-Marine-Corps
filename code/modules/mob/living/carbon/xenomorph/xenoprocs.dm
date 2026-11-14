@@ -59,12 +59,25 @@
 	for(var/hive AS in GLOB.xeno_tunnels_by_hive)
 		for(var/obj/structure/xeno/tunnel/T in GLOB.xeno_tunnels_by_hive[hive])
 			if(user.issamexenohive(T))
-				var/distance = get_dist(user, T)
-				dat += "<b>[T.name]</b> located at: <b><font color=green>([T.tunnel_desc][distance > 0 ? " <b>Distance: [distance])</b>" : ""]</b></font><BR>"
+				dat += "<b>[T.name]</b> located at: <b><font color=green>([T.tunnel_desc]) <b>[get_tunnel_distance_text(user, T)]</b></font></b><BR>"
 
 	var/datum/browser/popup = new(user, "tunnelstatus", "<div align='center'>Tunnel List</div>", 600, 600)
 	popup.set_content(dat)
 	popup.open(FALSE)
+
+/// Describes how far the tunnel is to the user, accounting for z-levels
+/proc/get_tunnel_distance_text(mob/user, obj/structure/xeno/tunnel/tunnel)
+	var/turf/user_turf = get_turf(user)
+	var/turf/tunnel_turf = get_turf(tunnel)
+	if(!user_turf || !tunnel_turf)
+		return ""
+	var/distance = get_dist(user_turf, tunnel_turf)
+	if(user_turf.z == tunnel_turf.z)
+		return "Distance: [distance]"
+	if(!(tunnel_turf.z in SSmapping.get_connected_levels(user_turf.z)))
+		return "Elsewhere"
+	var/floors = tunnel_turf.z - user_turf.z
+	return "Distance: [distance], [abs(floors)] floor\s [floors > 0 ? "above" : "below"]"
 
 /proc/check_hive_status(mob/user)
 	if(!SSticker)

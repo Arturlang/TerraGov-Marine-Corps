@@ -157,7 +157,7 @@ GLOBAL_PROTECT(roles_allowed_minimap_draw)
 	if(!.)
 		return
 	var/list/modifiers = params2list(params)
-	var/list/pixel_coords = params2screenpixel(modifiers["screen-loc"])
+	var/list/pixel_coords = SSminimaps.screen_to_minimap_pixels(params2screenpixel(modifiers["screen-loc"]), zlevel)
 	if(modifiers[BUTTON] == RIGHT_CLICK)
 		var/icon/mona_lisa = icon(drawn_image.icon)
 		pixel_coords = list(pixel_coords[1]-MINIMAP_DRAW_OFFSET, pixel_coords[2]+MINIMAP_DRAW_OFFSET)
@@ -174,7 +174,7 @@ GLOBAL_PROTECT(roles_allowed_minimap_draw)
 	SIGNAL_HANDLER
 	UnregisterSignal(source, COMSIG_MOB_MOUSEUP)
 	var/list/modifiers = params2list(params)
-	var/list/end_coords = params2screenpixel(modifiers["screen-loc"])
+	var/list/end_coords = SSminimaps.screen_to_minimap_pixels(params2screenpixel(modifiers["screen-loc"]), zlevel)
 	draw_line(starting_coords, end_coords)
 	last_drawn = list(starting_coords, end_coords)
 	log_minimap_drawing("[key_name(usr)] drew a [color] line from [starting_coords[1]], [starting_coords[2]] to [end_coords[1]], [end_coords[2]]")
@@ -299,7 +299,7 @@ GLOBAL_PROTECT(roles_allowed_minimap_draw)
 	// this is really [/atom/movable/screen/minimap/proc/get_coords_from_click] copypaste since we
 	// want to also cancel the click if they click src and I cant be bothered to make it even more generic rn
 	var/list/modifiers = params2list(params)
-	var/list/pixel_coords = params2screenpixel(modifiers["screen-loc"])
+	var/list/pixel_coords = SSminimaps.screen_to_minimap_pixels(params2screenpixel(modifiers["screen-loc"]), zlevel)
 	var/x = (pixel_coords[1] - x_offset - MINIMAP_DRAW_OFFSET) / 2
 	var/y = (pixel_coords[2] - y_offset + MINIMAP_DRAW_OFFSET) / 2
 	var/c_x = clamp(CEILING(x, 1), 1, world.maxx)
@@ -350,7 +350,7 @@ GLOBAL_PROTECT(roles_allowed_minimap_draw)
 	screen_loc = "16,9"
 
 /atom/movable/screen/minimap_tool/clear/Click()
-	drawn_image.icon = icon('icons/UI_icons/minimap.dmi')
+	drawn_image.icon = SSminimaps.get_blank_drawing(zlevel)
 	var/atom/movable/screen/minimap_tool/label/labels = locate() in usr.client?.screen
 	labels?.clear_labels(usr)
 	log_minimap_drawing("[key_name(usr)] has cleared the minimap")
