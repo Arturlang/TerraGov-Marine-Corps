@@ -1017,21 +1017,40 @@
 	var/mob/living/owner
 	///See through copy of the owner shown to them where they stand
 	var/image/self_copy
+	///Invisible movable for holding the image
+	var/atom/movable/looking_copy_anchor/copy_anchor
+	var/view_offset_x = 0
+	var/view_offset_y = 0
+	var/view_glide_from_x = 0
+	var/view_glide_from_y = 0
+	///How long the owner's current view glide lasts
+	var/view_glide_time = 0
+	///When the owner's current view glide ends
+	var/view_glide_end = 0
 
 /atom/movable/looking_holder/Initialize(mapload, mob/living/owner, direction)
 	. = ..()
 	look_direction = direction
 	src.owner = owner
 	update_container()
-	self_copy = image(loc = get_self_copy_turf())
-	owner.client?.images += self_copy
-	update_self_copy()
-	RegisterSignals(owner, list(COMSIG_ATOM_DIR_CHANGE, COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED), PROC_REF(update_self_copy))
+	if(look_direction == DOWN)
+		copy_anchor = new(get_self_copy_turf())
+		self_copy = image(loc = copy_anchor)
+		owner.client?.images += self_copy
+		update_self_copy()
+		RegisterSignals(owner, list(COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED), PROC_REF(update_self_copy))
+		RegisterSignal(owner, COMSIG_ATOM_DIR_CHANGE, PROC_REF(on_owner_dir_change))
+	update_view_offset()
 
 /atom/movable/looking_holder/Destroy()
 	UnregisterSignal(owner, list(COMSIG_ATOM_DIR_CHANGE, COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED))
 	owner?.client?.images -= self_copy
+	if(owner?.client)
+		animate(owner.client)
+		owner.client.pixel_x -= view_offset_x
+		owner.client.pixel_y -= view_offset_y
 	self_copy = null
+	QDEL_NULL(copy_anchor)
 	owner = null
 	return ..()
 
@@ -1046,10 +1065,26 @@
 	if(!self_copy)
 		return
 	self_copy.appearance = owner.appearance
-	self_copy.loc = get_self_copy_turf()
-	self_copy.alpha = 128
+	self_copy.dir = owner.dir //not part of the copied appearance
+	self_copy.alpha = SEETHROUGH_MOB_ALPHA
 	self_copy.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	SET_PLANE_EXPLICIT(self_copy, GAME_PLANE, self_copy.loc)
+	SET_PLANE_EXPLICIT(self_copy, GAME_PLANE, copy_anchor)
+
+/// Update the dir when the owner rotates or moves around
+/atom/movable/looking_holder/proc/on_owner_dir_change(datum/source, old_dir, new_dir)
+	SIGNAL_HANDLER
+	update_self_copy()
+	self_copy?.dir = new_dir
+
+/// Update the image anchor's glide size from the owner
+/atom/movable/looking_holder/proc/move_self_copy()
+	if(!copy_anchor)
+		return
+	var/turf/new_loc = get_self_copy_turf()
+	if(copy_anchor.loc == new_loc)
+		return
+	copy_anchor.set_glide_size(container.glide_size)
+	copy_anchor.abstract_move(new_loc)
 
 ///called to find and set the atom on the actual turf to be the container and all relevant effects
 /atom/movable/looking_holder/proc/update_container()
@@ -1073,14 +1108,81 @@
 	if(!isturf(owner.loc))
 		update_container()
 	set_glide_size(container.glide_size)
-	var/turf/looking_turf = owner.get_looking_turf(look_direction, TRUE)
-	if(!looking_turf)
-		looking_turf = get_step_multiz(get_turf(owner), look_direction)
+	if(!get_step_multiz(get_turf(owner), look_direction))
+		owner.end_look()
+		return
+	var/turf/owner_turf = get_turf(owner)
+	var/turf/looking_turf = locate(owner_turf.x - view_offset_x / ICON_SIZE_X, owner_turf.y - view_offset_y / ICON_SIZE_Y, z)
+	if(!hole_in_reach(looking_turf))
+		looking_turf = hole_in_reach(loc) ? loc : owner.get_looking_turf(look_direction, TRUE)
 	if(!looking_turf)
 		owner.end_look()
 		return
-	abstract_move(looking_turf)
-	update_self_copy()
+	var/glide_time = get_dist(oldloc, container) == 1 ? GLIDE_SIZE_TO_DELAY(container.glide_size) : 0
+	var/jump_x = 0
+	var/jump_y = 0
+	if(looking_turf != loc)
+		var/turf/old_turf = loc
+		abstract_move(looking_turf)
+		if(get_dist(old_turf, looking_turf) > 1) //we jumped instead of gliding
+			jump_x = (old_turf.x - looking_turf.x) * ICON_SIZE_X
+			jump_y = (old_turf.y - looking_turf.y) * ICON_SIZE_Y
+	move_self_copy()
+	update_view_offset(glide_time, jump_x, jump_y)
+
+/// Are we still close enough to the hole to be looking down it
+/atom/movable/looking_holder/proc/hole_in_reach(turf/holder_turf)
+	if(!holder_turf)
+		return FALSE
+	var/turf/hole = holder_turf
+	var/turf/owner_level = get_turf(owner)
+	if(look_direction == DOWN)
+		hole = GET_TURF_ABOVE(hole)
+	else
+		owner_level = GET_TURF_ABOVE(owner_level)
+	if(!istransparentturf(hole) || !owner_level || hole.z != owner_level.z)
+		return FALSE
+	return max(abs(hole.x - owner_level.x), abs(hole.y - owner_level.y)) <= 1
+
+
+//* Essentially keeps your client eye center off the wall, but animates it off into the wall for byond FOV calculations, so you don't look into the wall.
+/atom/movable/looking_holder/proc/update_view_offset(glide_time = 0, jump_x = 0, jump_y = 0)
+	var/client/viewer = owner?.client
+	if(!viewer)
+		return
+	var/turf/center = get_self_copy_turf()
+	var/new_offset_x = (center.x - x) * ICON_SIZE_X
+	var/new_offset_y = (center.y - y) * ICON_SIZE_Y
+	if(new_offset_x == view_offset_x && new_offset_y == view_offset_y && !jump_x && !jump_y)
+		return
+	var/target_x = viewer.pixel_x + new_offset_x - view_offset_x
+	var/target_y = viewer.pixel_y + new_offset_y - view_offset_y
+	view_offset_x = new_offset_x
+	view_offset_y = new_offset_y
+	var/start_x = viewer.pixel_x + jump_x
+	var/start_y = viewer.pixel_y + jump_y
+	if(view_glide_end > world.time)
+		var/remaining = (view_glide_end - world.time) / view_glide_time
+		start_x -= (viewer.pixel_x - view_glide_from_x) * remaining
+		start_y -= (viewer.pixel_y - view_glide_from_y) * remaining
+	animate(viewer)
+	view_glide_end = 0
+	if(!glide_time)
+		viewer.pixel_x = target_x
+		viewer.pixel_y = target_y
+		return
+	viewer.pixel_x = start_x
+	viewer.pixel_y = start_y
+	view_glide_from_x = start_x
+	view_glide_from_y = start_y
+	view_glide_time = glide_time
+	view_glide_end = world.time + glide_time
+	animate(viewer, pixel_x = target_x, pixel_y = target_y, time = glide_time)
+
+/atom/movable/looking_copy_anchor
+	anchored = TRUE
+	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	resistance_flags = RESIST_ALL
 
 ///Checks if the user is incapacitated or on cooldown.
 /mob/living/proc/can_look_up()

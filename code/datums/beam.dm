@@ -139,7 +139,7 @@
 		return
 	var/queued_time = 0
 	if(animate && istype(mover))
-		queued_time = ICON_SIZE_ALL / max(mover.glide_size, MIN_GLIDE_SIZE) * world.tick_lag
+		queued_time = GLIDE_SIZE_TO_DELAY(mover.glide_size)
 	if(queued_time > pending_animate_time)
 		pending_animate_time = queued_time
 	// Synchronous: deferring via INVOKE_ASYNC would start animate() one render frame after the mob's
