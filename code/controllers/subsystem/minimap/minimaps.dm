@@ -104,36 +104,34 @@ SUBSYSTEM_DEF(minimaps)
 				continue
 			icon_gen.DrawBox(location.minimap_color, xval, yval)
 	icon_gen.Scale(480*2,480*2) //scale it up x2 to make it easer to see
-	var/drawn_width = max(SCREEN_PIXEL_SIZE, world.maxx * 2)
-	var/drawn_height = max(SCREEN_PIXEL_SIZE, world.maxy * 2)
-	icon_gen.Crop(1, 1, min(icon_gen.Width(), drawn_width), min(icon_gen.Height(), drawn_height)) //then cut all the empty pixels
+	icon_gen.Crop(1, 1, min(icon_gen.Width(), 480), min(icon_gen.Height(), 480)) //then cut all the empty pixels
 
 	//generation is done, now we need to center the icon to someones view,
 	//this can be left out if you like it ugly and will halve SSinit time
 
 	//calculate the offset of the icon
 	var/largest_x = 0
-	var/smallest_x = drawn_width
+	var/smallest_x = SCREEN_PIXEL_SIZE
 	var/largest_y = 0
-	var/smallest_y = drawn_height
-	for(var/xval=1 to drawn_width step 2) //step 2 is twice as fast :)
-		for(var/yval=1 to drawn_height step 2) //keep in mind 1 wide giant straight lines will offset wierd but you shouldnt be mapping those anyway right???
+	var/smallest_y = SCREEN_PIXEL_SIZE
+	for(var/xval=1 to SCREEN_PIXEL_SIZE step 2) //step 2 is twice as fast :)
+		for(var/yval=1 to SCREEN_PIXEL_SIZE step 2) //keep in mind 1 wide giant straight lines will offset wierd but you shouldnt be mapping those anyway right???
 			if(!icon_gen.GetPixel(xval, yval))
 				continue
-			largest_x = max(largest_x, xval)
-			smallest_x = min(smallest_x, xval)
-			largest_y = max(largest_y, yval)
-			smallest_y = min(smallest_y, yval)
+			if(xval > largest_x)
+				largest_x = xval
+			else if(xval < smallest_x)
+				smallest_x = xval
+			if(yval > largest_y)
+				largest_y = yval
+			else if(yval < smallest_y)
+				smallest_y = yval
 
-	var/map_size = max(SCREEN_PIXEL_SIZE, largest_x - smallest_x + 2, largest_y - smallest_y + 2)
-	minimaps_by_z["[level]"].map_size = map_size
-	minimaps_by_z["[level]"].scale = SCREEN_PIXEL_SIZE / map_size
-	minimaps_by_z["[level]"].x_offset = FLOOR((map_size-largest_x-smallest_x)/2, 1)
-	minimaps_by_z["[level]"].y_offset = FLOOR((map_size-largest_y-smallest_y)/2, 1)
+	minimaps_by_z["[level]"].x_offset = FLOOR((SCREEN_PIXEL_SIZE-largest_x-smallest_x)/2, 1)
+	minimaps_by_z["[level]"].y_offset = FLOOR((SCREEN_PIXEL_SIZE-largest_y-smallest_y)/2, 1)
 
 	icon_gen.Shift(EAST, minimaps_by_z["[level]"].x_offset)
 	icon_gen.Shift(NORTH, minimaps_by_z["[level]"].y_offset)
-	icon_gen.Crop(1, 1, map_size, map_size)
 
 	minimaps_by_z["[level]"].hud_image = icon_gen //done making the image!
 
@@ -190,10 +188,6 @@ SUBSYSTEM_DEF(minimaps)
 	var/x_offset = 0
 	///y offset of the actual icons to keep it to screens
 	var/y_offset = 0
-	///Width and height in pixels of the drawn zlevel, some maps can be bigger than the screen
-	var/map_size = SCREEN_PIXEL_SIZE
-	///How much the drawn zlevel is shrunk to fit on the screen
-	var/scale = 1
 
 /datum/hud_displays/New()
 	..()
@@ -392,23 +386,10 @@ SUBSYSTEM_DEF(minimaps)
 	if(drawn_images[hash])
 		return drawn_images[hash]
 	var/image/blip = new // could use MA but yolo
-	blip.icon = get_blank_drawing(zlevel)
+	blip.icon = icon('icons/UI_icons/minimap.dmi')
 	minimaps_by_z["[zlevel]"].images_raw["[minimap_flag]"] += blip
 	drawn_images[hash] = blip
 	return blip
-
-/// returns a blank image sized to the minimap itself
-/datum/controller/subsystem/minimaps/proc/get_blank_drawing(zlevel)
-	var/icon/blank = icon('icons/UI_icons/minimap.dmi')
-	var/map_size = minimaps_by_z["[zlevel]"].map_size
-	if(map_size != blank.Width())
-		blank.Crop(1, 1, map_size, map_size)
-	return blank
-
-/// Converts pixel coordinates on the screen into coordinates on the drawn minimap of the z-level
-/datum/controller/subsystem/minimaps/proc/screen_to_minimap_pixels(list/pixel_coords, zlevel)
-	var/scale = minimaps_by_z["[zlevel]"].scale
-	return list(pixel_coords[1] / scale, pixel_coords[2] / scale)
 
 ///Default HUD screen minimap object
 /atom/movable/screen/minimap
@@ -433,10 +414,6 @@ SUBSYSTEM_DEF(minimaps)
 	choices_by_mob = list()
 	stop_polling = list()
 	icon = SSminimaps.minimaps_by_z["[target]"].hud_image
-	var/datum/hud_displays/display = SSminimaps.minimaps_by_z["[target]"]
-	if(display.scale != 1)
-		var/shift = -display.map_size * (1 - display.scale) / 2
-		transform = matrix(display.scale, 0, shift, 0, display.scale, shift)
 	SSminimaps.add_to_updaters(src, flags, target)
 
 /atom/movable/screen/minimap/Destroy()
@@ -475,8 +452,8 @@ SUBSYSTEM_DEF(minimaps)
 	SIGNAL_HANDLER
 	var/list/modifiers = params2list(params)
 	// we only care about absolute coords because the map is fixed to 1,1 so no client stuff
+	var/list/pixel_coords = params2screenpixel(modifiers["screen-loc"])
 	var/zlevel = SSminimaps.updators_by_datum[src].ztarget
-	var/list/pixel_coords = SSminimaps.screen_to_minimap_pixels(params2screenpixel(modifiers["screen-loc"]), zlevel)
 	var/x = (pixel_coords[1] - SSminimaps.minimaps_by_z["[zlevel]"].x_offset) / 2
 	var/y = (pixel_coords[2] - SSminimaps.minimaps_by_z["[zlevel]"].y_offset) / 2
 	var/c_x = clamp(CEILING(x, 1), 1, world.maxx)
@@ -499,8 +476,6 @@ SUBSYSTEM_DEF(minimaps)
 	var/y_coord = mover_turf.y * 2
 	x_coord += SSminimaps.minimaps_by_z["[mover_turf.z]"].x_offset
 	y_coord += SSminimaps.minimaps_by_z["[mover_turf.z]"].y_offset
-	x_coord = round(x_coord * SSminimaps.minimaps_by_z["[mover_turf.z]"].scale)
-	y_coord = round(y_coord * SSminimaps.minimaps_by_z["[mover_turf.z]"].scale)
 	// + 1 because tiles start at 1
 	var/x_tile = FLOOR(x_coord/32, 1) + 1
 	// -3 to center the image
