@@ -1015,51 +1015,67 @@
 	var/atom/movable/container
 	///the actual owner who is "looking"
 	var/mob/living/owner
-	///See through copy of the owner shown to them where they stand
+	///See through copy of the owner shown to them where they stand, only made when looking down
 	var/image/self_copy
-	///Invisible movable for holding the image
+	///Images cannot glide but atoms can, so we have perfect matching glide
 	var/atom/movable/looking_copy_anchor/copy_anchor
+	///How much the owner's view is offset on the x axis
 	var/view_offset_x = 0
+	///How much the owner's view is offset on the y axis
 	var/view_offset_y = 0
-	var/view_glide_from_x = 0
-	var/view_glide_from_y = 0
-	///How long the owner's current view glide lasts
-	var/view_glide_time = 0
-	///When the owner's current view glide ends
-	var/view_glide_end = 0
+	///The client we changed the view and images of, kept so we clean up the right one even after the owner logs out
+	var/client/viewer
 
 /atom/movable/looking_holder/Initialize(mapload, mob/living/owner, direction)
 	. = ..()
 	look_direction = direction
 	src.owner = owner
+	viewer = owner.client
 	update_container()
+	RegisterSignal(owner, COMSIG_MOB_LOGOUT, PROC_REF(on_owner_logout))
+	if(viewer)
+		RegisterSignal(viewer, COMSIG_CLIENT_SET_EYE, PROC_REF(on_eye_changed))
+	var/turf/owner_spot = get_owner_spot()
 	if(look_direction == DOWN)
-		copy_anchor = new(get_self_copy_turf())
+		copy_anchor = new(owner_spot)
 		self_copy = image(loc = copy_anchor)
-		owner.client?.images += self_copy
+		viewer?.images += self_copy
 		update_self_copy()
 		RegisterSignals(owner, list(COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED), PROC_REF(update_self_copy))
 		RegisterSignal(owner, COMSIG_ATOM_DIR_CHANGE, PROC_REF(on_owner_dir_change))
-	update_view_offset()
+	update_view_offset(owner_spot)
 
 /atom/movable/looking_holder/Destroy()
-	UnregisterSignal(owner, list(COMSIG_ATOM_DIR_CHANGE, COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED))
-	owner?.client?.images -= self_copy
-	if(owner?.client)
-		animate(owner.client)
-		owner.client.pixel_x -= view_offset_x
-		owner.client.pixel_y -= view_offset_y
+	UnregisterSignal(owner, list(COMSIG_ATOM_DIR_CHANGE, COMSIG_ATOM_UPDATED_ICON, COMSIG_ATOM_OVERLAYS_CHANGED, COMSIG_MOB_LOGOUT))
+	if(viewer)
+		UnregisterSignal(viewer, COMSIG_CLIENT_SET_EYE)
+		viewer.images -= self_copy
+		animate(viewer) // reset animations
+		viewer.pixel_x -= view_offset_x
+		viewer.pixel_y -= view_offset_y
+		viewer = null
 	self_copy = null
 	QDEL_NULL(copy_anchor)
 	owner = null
 	return ..()
 
-///the turf the owner is above/below
-/atom/movable/looking_holder/proc/get_self_copy_turf()
+///The owner logging out ends the look, so the view and images get cleaned up off the client they were on
+/atom/movable/looking_holder/proc/on_owner_logout(datum/source)
+	SIGNAL_HANDLER
+	owner.end_look()
+
+///Something else taking over the owner's view ends the look, without resetting the view so whatever took it over keeps it
+/atom/movable/looking_holder/proc/on_eye_changed(datum/source, atom/old_eye, atom/new_eye)
+	SIGNAL_HANDLER
+	if(new_eye != src)
+		owner.end_look(FALSE)
+
+///Returns the turf on our level straight above or below the owner
+/atom/movable/looking_holder/proc/get_owner_spot()
 	var/turf/owner_turf = get_turf(owner)
 	return locate(owner_turf.x, owner_turf.y, z)
 
-// copies the appearance of the owner to the mimic icon
+///Copies the owner's look onto the see through copy
 /atom/movable/looking_holder/proc/update_self_copy()
 	SIGNAL_HANDLER
 	if(!self_copy)
@@ -1070,21 +1086,18 @@
 	self_copy.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	SET_PLANE_EXPLICIT(self_copy, GAME_PLANE, copy_anchor)
 
-/// Update the dir when the owner rotates or moves around
+///The owner's dir signal is sent before their dir changes, so the new dir is set on the copy here
 /atom/movable/looking_holder/proc/on_owner_dir_change(datum/source, old_dir, new_dir)
 	SIGNAL_HANDLER
 	update_self_copy()
 	self_copy?.dir = new_dir
 
-/// Update the image anchor's glide size from the owner
-/atom/movable/looking_holder/proc/move_self_copy()
-	if(!copy_anchor)
-		return
-	var/turf/new_loc = get_self_copy_turf()
-	if(copy_anchor.loc == new_loc)
+/// Glide the copy's anchor to match the owner's movement and glide
+/atom/movable/looking_holder/proc/move_self_copy(turf/owner_spot)
+	if(!copy_anchor || copy_anchor.loc == owner_spot)
 		return
 	copy_anchor.set_glide_size(container.glide_size)
-	copy_anchor.abstract_move(new_loc)
+	copy_anchor.abstract_move(owner_spot)
 
 ///called to find and set the atom on the actual turf to be the container and all relevant effects
 /atom/movable/looking_holder/proc/update_container()
@@ -1103,80 +1116,78 @@
 	if(new_container != owner)
 		RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(update_container))
 
+/// Having a screen be offset from the center and moved around is disorentiating so we try to have the client view center on their actual position, while faking FOV by having the real eye be in the open
 /atom/movable/looking_holder/proc/mirror_move(mob/living/source, atom/oldloc, direction, Forced, old_locs)
 	SIGNAL_HANDLER
 	if(!isturf(owner.loc))
 		update_container()
 	set_glide_size(container.glide_size)
-	if(!get_step_multiz(get_turf(owner), look_direction))
+	var/turf/hole_spot = owner.get_looking_turf(look_direction, TRUE)
+	if(!hole_spot || hole_spot.z != z) //nothing to look through next to the owner anymore, or they changed levels
 		owner.end_look()
 		return
-	var/turf/owner_turf = get_turf(owner)
-	var/turf/looking_turf = locate(owner_turf.x - view_offset_x / ICON_SIZE_X, owner_turf.y - view_offset_y / ICON_SIZE_Y, z)
-	if(!hole_in_reach(looking_turf))
-		looking_turf = hole_in_reach(loc) ? loc : owner.get_looking_turf(look_direction, TRUE)
-	if(!looking_turf)
-		owner.end_look()
-		return
-	var/glide_time = get_dist(oldloc, container) == 1 ? GLIDE_SIZE_TO_DELAY(container.glide_size) : 0
-	var/jump_x = 0
-	var/jump_y = 0
-	if(looking_turf != loc)
-		var/turf/old_turf = loc
-		abstract_move(looking_turf)
-		if(get_dist(old_turf, looking_turf) > 1) //we jumped instead of gliding
-			jump_x = (old_turf.x - looking_turf.x) * ICON_SIZE_X
-			jump_y = (old_turf.y - looking_turf.y) * ICON_SIZE_Y
-	move_self_copy()
-	update_view_offset(glide_time, jump_x, jump_y)
+	var/turf/owner_spot = get_owner_spot()
+	var/turf/old_eye_turf = loc
+	var/turf/eye_turf = locate(owner_spot.x - view_offset_x / ICON_SIZE_X, owner_spot.y - view_offset_y / ICON_SIZE_Y, z)
+	var/glide_time = 0
+	if(!is_good_spot(eye_turf, owner_spot))
+		eye_turf = get_best_spot(owner_spot) || (is_open_spot(hole_spot) ? hole_spot : loc)
+		if(get_dist(oldloc, container) == 1)
+			glide_time = GLIDE_SIZE_TO_DELAY(container.glide_size)
+	if(eye_turf != loc)
+		abstract_move(eye_turf)
+	move_self_copy(owner_spot)
+	update_view_offset(owner_spot, glide_time, old_eye_turf)
 
-/// Are we still close enough to the hole to be looking down it
-/atom/movable/looking_holder/proc/hole_in_reach(turf/holder_turf)
-	if(!holder_turf)
+///Returns TRUE if the owner can look out from this turf, being inside dense walls blind you
+/atom/movable/looking_holder/proc/is_open_spot(turf/spot)
+	return spot && spot.z == z && !IS_OPAQUE_TURF(spot)
+
+///Returns TRUE if this spot if we should stay on this spot, and hasn't drifted too far, preferring cardinals
+/atom/movable/looking_holder/proc/is_good_spot(turf/spot, turf/owner_spot)
+	if(!is_open_spot(spot))
 		return FALSE
-	var/turf/hole = holder_turf
-	var/turf/owner_level = get_turf(owner)
-	if(look_direction == DOWN)
-		hole = GET_TURF_ABOVE(hole)
-	else
-		owner_level = GET_TURF_ABOVE(owner_level)
-	if(!istransparentturf(hole) || !owner_level || hole.z != owner_level.z)
-		return FALSE
-	return max(abs(hole.x - owner_level.x), abs(hole.y - owner_level.y)) <= 1
+	return (spot.x == owner_spot.x || spot.y == owner_spot.y) && get_dist(spot, owner_spot) <= 1
 
+///Tries to find a good open turf for the center of the eye
+/atom/movable/looking_holder/proc/get_best_spot(turf/owner_spot)
+	var/list/turf/candidates = list(owner_spot)
+	var/our_side = get_dir(owner_spot, src)
+	for(var/direction in GLOB.cardinals)
+		var/turf/spot = get_step(owner_spot, direction)
+		if(direction & our_side)
+			candidates.Insert(2, spot)
+		else
+			candidates += spot
+	//Prefer having to move less
+	for(var/turf/spot as anything in candidates)
+		if(is_open_spot(spot) && (spot.x == x || spot.y == y) && get_dist(spot, src) <= 1)
+			return spot
+	for(var/turf/spot as anything in candidates)
+		if(is_open_spot(spot))
+			return spot
 
-//* Essentially keeps your client eye center off the wall, but animates it off into the wall for byond FOV calculations, so you don't look into the wall.
-/atom/movable/looking_holder/proc/update_view_offset(glide_time = 0, jump_x = 0, jump_y = 0)
-	var/client/viewer = owner?.client
+///Shift the owner's view to center owner_spot but keep the eye center on the same turf
+/atom/movable/looking_holder/proc/update_view_offset(turf/owner_spot, glide_time = 0, turf/old_eye_turf)
 	if(!viewer)
 		return
-	var/turf/center = get_self_copy_turf()
-	var/new_offset_x = (center.x - x) * ICON_SIZE_X
-	var/new_offset_y = (center.y - y) * ICON_SIZE_Y
-	if(new_offset_x == view_offset_x && new_offset_y == view_offset_y && !jump_x && !jump_y)
+	var/new_offset_x = (owner_spot.x - x) * ICON_SIZE_X
+	var/new_offset_y = (owner_spot.y - y) * ICON_SIZE_Y
+	if(new_offset_x == view_offset_x && new_offset_y == view_offset_y)
 		return
+	//only change our own part of the offset, other things like scopes offset the view too
 	var/target_x = viewer.pixel_x + new_offset_x - view_offset_x
 	var/target_y = viewer.pixel_y + new_offset_y - view_offset_y
 	view_offset_x = new_offset_x
 	view_offset_y = new_offset_y
-	var/start_x = viewer.pixel_x + jump_x
-	var/start_y = viewer.pixel_y + jump_y
-	if(view_glide_end > world.time)
-		var/remaining = (view_glide_end - world.time) / view_glide_time
-		start_x -= (viewer.pixel_x - view_glide_from_x) * remaining
-		start_y -= (viewer.pixel_y - view_glide_from_y) * remaining
 	animate(viewer)
-	view_glide_end = 0
 	if(!glide_time)
 		viewer.pixel_x = target_x
 		viewer.pixel_y = target_y
 		return
-	viewer.pixel_x = start_x
-	viewer.pixel_y = start_y
-	view_glide_from_x = start_x
-	view_glide_from_y = start_y
-	view_glide_time = glide_time
-	view_glide_end = world.time + glide_time
+	if(get_dist(old_eye_turf, src) > 1) //too far for us to glide, so make up for the jump at once
+		viewer.pixel_x += (old_eye_turf.x - x) * ICON_SIZE_X
+		viewer.pixel_y += (old_eye_turf.y - y) * ICON_SIZE_Y
 	animate(viewer, pixel_x = target_x, pixel_y = target_y, time = glide_time)
 
 /atom/movable/looking_copy_anchor
@@ -1192,10 +1203,12 @@
 		return FALSE
 	return TRUE
 
-/mob/living/proc/end_look()
-	reset_perspective()
+///Stops looking up or down, reset_view puts the view back on us, which isn't wanted when something else just took the view over
+/mob/living/proc/end_look(reset_view = TRUE)
 	looking_vertically = NONE
 	QDEL_NULL(looking_holder)
+	if(reset_view)
+		reset_perspective()
 
 
 /**
@@ -1228,14 +1241,12 @@
 			to_chat(src, span_warning("There's nothing interesting there."))
 		return
 	else if(!istransparentturf(check_turf)) //There is no turf we can look through above us
-		var/turf/front_hole = get_step(check_turf, dir)
-		if(istransparentturf(front_hole))
-			check_turf = front_hole
-		else
-			for(var/turf/checkhole in TURF_NEIGHBORS(check_turf))
-				if(istransparentturf(checkhole))
-					check_turf = checkhole
-					break
+		// it's better if we check valid cardinals first
+		for(var/angle in list(0, 90, -90, 180, 45, -45, 135, -135))
+			var/turf/checkhole = get_step(check_turf, turn(dir, angle))
+			if(istransparentturf(checkhole))
+				check_turf = checkhole
+				break
 		if(!istransparentturf(check_turf))
 			if(!silent)
 				to_chat(src, span_warning("You can't see through the floor [direction == DOWN ? "below" : "above"] you."))
